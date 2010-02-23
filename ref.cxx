@@ -2,7 +2,9 @@
 #include "itkImageFileWriter.h"
 #include "itkSimpleFilterWatcher.h"
 
-#include "itkImageFilter.h"
+#include "itkRegionFromReferenceImageFilter.h"
+#include "itkConstantPadImageFilter.h"
+#include "itkCropImageFilter.h"
 
 
 int main(int argc, char * argv[])
@@ -26,9 +28,27 @@ int main(int argc, char * argv[])
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
 
-  typedef itk::ImageFilter< IType, IType > FilterType;
+  typedef itk::ConstantPadImageFilter< IType, IType > PadType;
+  PadType::Pointer pad = PadType::New();
+  pad->SetInput( reader->GetOutput() );
+  // huge pad shouldn't have any memory requirement, since the padded image is lazily evaluated
+  // lets test that as well
+  PadType::InputImageSizeType s;
+  s.Fill(100000000);
+  pad->SetPadBound( s );
+
+  // crop the image to test that our filter trigger the update of the output information of the
+  // reference image as it should
+  typedef itk::CropImageFilter< IType, IType > CropType;
+  CropType::Pointer crop = CropType::New();
+  crop->SetInput( reader->GetOutput() );
+  s.Fill(20);
+  crop->SetBoundaryCropSize( s );
+
+  typedef itk::RegionFromReferenceImageFilter< IType, IType > FilterType;
   FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( reader->GetOutput() );
+  filter->SetInput( pad->GetOutput() );
+  filter->SetReferenceImage( crop->GetOutput() );
 
   itk::SimpleFilterWatcher watcher(filter, "filter");
 
