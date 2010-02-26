@@ -23,27 +23,25 @@
 namespace itk {
 
 /** \class FFTZeroPaddingImageFilter
- * \brief Produce a binary image where foreground is the regional maxima of the
- * input image
+ * \brief Pad two images with zeros to make them suitable for a convolution in the
+ * frequency domain.
  *
- * Regional maxima are flat zones surounded by pixels of lower value.
+ * The requires two input images. The first one is supposed to be the image to convolve
+ * and the second one the kernel.
  *
- * If the input image is constant, the entire image can be considered as a
- * maxima or not.  The desired behavior can be selected with the
- * SetFlatIsMaxima() method.
+ * The filter pad with zeros the first image by the size of the second image. The second image
+ * is centered and padded with zeros to have the same size than the first output image.
+ * After the transform, both images have the same LargestPossibleRegion.
+ *
+ * The option PadToPowerOfTwo can be set to true to force the size of the
+ * images be a power of two - if the size of the padded image is 274 without this option, it
+ * would be increased to 512 when PadToPowerOfTwo is true.
+ * This option is makes the images usable with vnl's implementation of FFT.
+ * PadToPowerOfTwo is false by default.
  * 
  * \author Gaetan Lehmann
  *
- * This class was contributed to the Insight Journal by author Gaetan Lehmann.
- * Biologie du Developpement et de la Reproduction, INRA de Jouy-en-Josas,
- * France. The paper can be found at
- * http://insight-journal.org/midas/handle.php?handle=1926/153
- *
- * \sa ValuedFFTZeroPaddingImageFilter
- * \sa HConvexImageFilter 
- * \sa RegionalMinimaImageFilter
- *
- * \ingroup MathematicalMorphologyImageFilters
+ * \sa FFTShiftImageFilter NormalizeToConstantImageFilter FFTRealToComplexConjugateImageFilter
  */
 template<class TInputImage, class TOutputImage>
 class ITK_EXPORT FFTZeroPaddingImageFilter : 
