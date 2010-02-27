@@ -58,11 +58,11 @@ int main(int argc, char * argv[])
   typedef itk::FFTRealToComplexConjugateImageFilter< PType, dim > FFTType;
   FFTType::Pointer fft = FFTType::New();
   fft->SetInput( pad->GetOutput() );
-  // itk::SimpleFilterWatcher watcher_fft(fft, "fft");
+  itk::SimpleFilterWatcher watcher_fft(fft, "fft");
 
   FFTType::Pointer fftk = FFTType::New();
   fftk->SetInput( shift->GetOutput() );
-  // itk::SimpleFilterWatcher watcher_fftk(fftk, "fftk");
+  itk::SimpleFilterWatcher watcher_fftk(fftk, "fftk");
   
   typedef itk::MultiplyImageFilter< FFTType::OutputImageType, FFTType::OutputImageType, FFTType::OutputImageType > MultType;
   MultType::Pointer mult = MultType::New();
