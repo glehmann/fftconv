@@ -71,45 +71,29 @@ GenerateData()
     total_outputSize *= outputSize[i];
     }
 
-  if(this->m_PlanComputed)            // if we've already computed a plan
-    {
-    // if the image sizes aren't the same,
-    // we have to compute the plan again
-    if(this->m_LastImageSize != total_inputSize)
-      {
-      delete [] this->m_InputBuffer;
-      delete [] this->m_OutputBuffer;
-      FFTWProxyType::DestroyPlan(this->m_Plan);
-      this->m_PlanComputed = false;
-      }
-    }
-  if(!this->m_PlanComputed)
-    {
-    this->m_InputBuffer = new TPixel[total_inputSize];
-    this->m_OutputBuffer = 
-      new typename FFTWProxyType::ComplexType[total_outputSize];
-    this->m_LastImageSize = total_inputSize;
+    typename FFTWProxyType::PlanType plan;
     switch(VDimension)
       {
       case 1:
-        this->m_Plan = FFTWProxyType::Plan_dft_r2c_1d(inputSize[0],
-                                             this->m_InputBuffer,
-                                             this->m_OutputBuffer,
+        plan = FFTWProxyType::Plan_dft_r2c_1d(inputSize[0],
+                                             const_cast<TPixel*>(inputPtr->GetBufferPointer()),
+                                             (typename FFTWProxyType::ComplexType*) outputPtr->GetBufferPointer(),
                                              FFTW_ESTIMATE);
         break;
       case 2:
-        this->m_Plan = FFTWProxyType::Plan_dft_r2c_2d(inputSize[1],
+        plan = FFTWProxyType::Plan_dft_r2c_2d(inputSize[1],
                                              inputSize[0],
-                                             this->m_InputBuffer,
-                                             this->m_OutputBuffer,
+                                             const_cast<TPixel*>(inputPtr->GetBufferPointer()),
+                                             (typename FFTWProxyType::ComplexType*) outputPtr->GetBufferPointer(),
                                              FFTW_ESTIMATE);
         break;
       case 3:
-        this->m_Plan = FFTWProxyType::Plan_dft_r2c_3d(inputSize[2],
+        plan = FFTWProxyType::Plan_dft_r2c_3d(inputSize[2],
                                              inputSize[1],
                                              inputSize[0],
-                                             this->m_InputBuffer,
-                                             this->m_OutputBuffer,
+                                             const_cast<TPixel*>(inputPtr->GetBufferPointer()),
+                                             (typename FFTWProxyType::ComplexType*)outputPtr->GetBufferPointer(),
+//                                             FFTW_ESTIMATE|FFTW_PRESERVE_INPUT);
                                              FFTW_ESTIMATE);
         break;
       default:
@@ -119,21 +103,14 @@ GenerateData()
           sizes[(VDimension - 1) - i] = inputSize[i];
           }
 
-        this->m_Plan = FFTWProxyType::Plan_dft_r2c(VDimension,sizes,
-                                          this->m_InputBuffer,
-                                          this->m_OutputBuffer,
+        plan = FFTWProxyType::Plan_dft_r2c(VDimension,sizes,
+                                          const_cast<TPixel*>(inputPtr->GetBufferPointer()),
+                                          (typename FFTWProxyType::ComplexType*) outputPtr->GetBufferPointer(),
                                           FFTW_ESTIMATE);
         delete [] sizes;
       }
-    this->m_PlanComputed = true;
-    }
-  memcpy(this->m_InputBuffer,
-         inputPtr->GetBufferPointer(),
-         total_inputSize * sizeof(TPixel));
-  FFTWProxyType::Execute(this->m_Plan);
-  memcpy(outputPtr->GetBufferPointer(),
-         this->m_OutputBuffer,
-         total_outputSize * sizeof(typename FFTWProxyType::ComplexType));
+  FFTWProxyType::Execute(plan);
+  FFTWProxyType::DestroyPlan(plan);
 }
 
 template <typename TPixel,unsigned int VDimension>
