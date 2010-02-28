@@ -78,19 +78,22 @@ GenerateData()
         plan = FFTWProxyType::Plan_dft_c2r_1d(outputSize[0],
                                        in,
 				       out,
-                                       FFTW_ESTIMATE);
+                                       FFTW_ESTIMATE,
+				       this->GetNumberOfThreads());
         break;
       case 2:
         plan = FFTWProxyType::Plan_dft_c2r_2d(outputSize[1],outputSize[0],
                                        in,
 				       out,
-                                       FFTW_ESTIMATE);
+                                       FFTW_ESTIMATE,
+				       this->GetNumberOfThreads());
         break;
       case 3:
         plan = FFTWProxyType::Plan_dft_c2r_3d(outputSize[2],outputSize[1],outputSize[0],
                                        in,
 				       out,
-                                       FFTW_ESTIMATE);
+                                       FFTW_ESTIMATE,
+				       this->GetNumberOfThreads());
         break;
       default:
         int *sizes = new int[VDimension];
@@ -101,7 +104,8 @@ GenerateData()
         plan = FFTWProxyType::Plan_dft_c2r(VDimension,sizes,
                                     in,
 				    out,
-                                    FFTW_ESTIMATE);
+                                    FFTW_ESTIMATE,
+				    this->GetNumberOfThreads());
         delete [] sizes;
       }
   // copy the input, because it may be destroyed by computing the plan
