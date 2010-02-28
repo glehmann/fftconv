@@ -76,7 +76,7 @@ public:
                                   ComplexType *in,
                                   PixelType *out,
                                   unsigned flags,
-				  int threads)
+				  int threads=1)
     {
     Lock();
     fftwf_plan_with_nthreads(threads);
@@ -89,7 +89,7 @@ public:
                                   ComplexType *in,
                                   PixelType *out, 
                                   unsigned flags,
-				  int threads)
+				  int threads=1)
     {
     Lock();
     fftwf_plan_with_nthreads(threads);       
@@ -103,7 +103,7 @@ public:
                                   ComplexType *in, 
                                   PixelType *out, 
                                   unsigned flags,
-				  int threads)
+				  int threads=1)
     {
     Lock();
     fftwf_plan_with_nthreads(threads);
@@ -116,7 +116,7 @@ public:
                                ComplexType *in, 
                                PixelType *out, 
                                unsigned flags,
-			       int threads)
+			       int threads=1)
     {
     Lock();
     fftwf_plan_with_nthreads(threads);
@@ -129,7 +129,7 @@ public:
                                   PixelType *in,
                                   ComplexType *out,
                                   unsigned flags,
-				  int threads)
+				  int threads=1)
     {
     Lock();
     fftwf_plan_with_nthreads(threads);
@@ -142,7 +142,7 @@ public:
                                   PixelType *in,
                                   ComplexType *out, 
                                   unsigned flags,
-				  int threads)
+				  int threads=1)
     {
     Lock();
     fftwf_plan_with_nthreads(threads);
@@ -156,7 +156,7 @@ public:
                                   PixelType *in, 
                                   ComplexType *out, 
                                   unsigned flags,
-				  int threads)
+				  int threads=1)
     {
     Lock();
     fftwf_plan_with_nthreads(threads);
@@ -169,7 +169,7 @@ public:
                                PixelType *in, 
                                ComplexType *out, 
                                unsigned flags,
-			       int threads)
+			       int threads=1)
     {
     Lock();
     fftwf_plan_with_nthreads(threads);
@@ -229,7 +229,7 @@ public:
                                   ComplexType *in,
                                   PixelType *out,
                                   unsigned flags,
-				  int threads)
+				  int threads=1)
     {
     Lock();
     fftw_plan_with_nthreads(threads);
@@ -242,7 +242,7 @@ public:
                                   ComplexType *in,
                                   PixelType *out, 
                                   unsigned flags,
-				  int threads)
+				  int threads=1)
     {
     Lock();
     fftw_plan_with_nthreads(threads);
@@ -256,7 +256,7 @@ public:
                                   ComplexType *in, 
                                   PixelType *out, 
                                   unsigned flags,
-				  int threads)
+				  int threads=1)
     {
     Lock();
     fftw_plan_with_nthreads(threads);
@@ -269,7 +269,7 @@ public:
                                ComplexType *in, 
                                PixelType *out, 
                                unsigned flags,
-			       int threads)
+			       int threads=1)
     {
     Lock();
     fftw_plan_with_nthreads(threads);
@@ -282,7 +282,7 @@ public:
                                   PixelType *in,
                                   ComplexType *out,
                                   unsigned flags,
-				  int threads)
+				  int threads=1)
     {
     Lock();
     fftw_plan_with_nthreads(threads);
@@ -295,7 +295,7 @@ public:
                                   PixelType *in,
                                   ComplexType *out, 
                                   unsigned flags,
-				  int threads)
+				  int threads=1)
     {
     Lock();
     fftw_plan_with_nthreads(threads);
@@ -309,7 +309,7 @@ public:
                                   PixelType *in, 
                                   ComplexType *out, 
                                   unsigned flags,
-				  int threads)
+				  int threads=1)
     {
     Lock();
     fftw_plan_with_nthreads(threads);
@@ -322,7 +322,7 @@ public:
                                PixelType *in, 
                                ComplexType *out, 
                                unsigned flags,
-			       int threads)
+			       int threads=1)
     {
     Lock();
     fftw_plan_with_nthreads(threads);
