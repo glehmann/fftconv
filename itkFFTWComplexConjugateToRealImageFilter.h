@@ -65,31 +65,16 @@ public:
   virtual void GenerateData();  // generates output from input
   virtual bool FullMatrix();
 protected:
-  FFTWComplexConjugateToRealImageFilter() : m_PlanComputed(false),
-                                            m_LastImageSize(0),
-                                            m_InputBuffer(0),
-                                            m_OutputBuffer(0)
+  FFTWComplexConjugateToRealImageFilter()
     {
     }
   virtual ~FFTWComplexConjugateToRealImageFilter()
     {
-    if(m_PlanComputed)
-      {
-      FFTWProxyType::DestroyPlan(m_Plan);
-      delete [] m_InputBuffer;
-      delete [] m_OutputBuffer;
-      }
     }
 
 private:
   FFTWComplexConjugateToRealImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
-  bool                             m_PlanComputed;
-  typename FFTWProxyType::PlanType m_Plan;
-  unsigned int                     m_LastImageSize;
-  // local storage needed to keep fftw from scribbling on
-  typename FFTWProxyType::ComplexType *m_InputBuffer;
-  TPixel                              *m_OutputBuffer;
 };
 
 

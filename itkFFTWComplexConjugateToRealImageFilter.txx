@@ -68,41 +68,28 @@ GenerateData()
     total_inputSize *= inputSize[i];
     }
 
-  if(this->m_PlanComputed)            // if we've already computed a plan
-    {
-    // if the image sizes aren't the same,
-    // we have to compute the plan again
-    if(this->m_LastImageSize != total_outputSize)
-      {
-      delete [] this->m_InputBuffer;
-      delete [] this->m_OutputBuffer;
-      FFTWProxyType::DestroyPlan(this->m_Plan);
-      this->m_PlanComputed = false;
-      }
-    }
-  // either plan never computed, or need to re-compute
-  if(!this->m_PlanComputed)
-    {
-    // if we've never computed the plan, or we need to redo it
-    this->m_InputBuffer = new typename FFTWProxyType::ComplexType[total_inputSize];
-    this->m_OutputBuffer = new TPixel[total_outputSize];
-    this->m_LastImageSize = total_outputSize;
-
+    typename FFTWProxyType::ComplexType * in = new typename FFTWProxyType::ComplexType[total_inputSize];
+    TPixel * out = outputPtr->GetBufferPointer();
+    typename FFTWProxyType::PlanType plan;
+    
     switch(VDimension)
       {
       case 1:
-        this->m_Plan = FFTWProxyType::Plan_dft_c2r_1d(outputSize[0],
-                                       this->m_InputBuffer,this->m_OutputBuffer,
+        plan = FFTWProxyType::Plan_dft_c2r_1d(outputSize[0],
+                                       in,
+				       out,
                                        FFTW_ESTIMATE);
         break;
       case 2:
-        this->m_Plan = FFTWProxyType::Plan_dft_c2r_2d(outputSize[1],outputSize[0],
-                                       this->m_InputBuffer,this->m_OutputBuffer,
+        plan = FFTWProxyType::Plan_dft_c2r_2d(outputSize[1],outputSize[0],
+                                       in,
+				       out,
                                        FFTW_ESTIMATE);
         break;
       case 3:
-        this->m_Plan = FFTWProxyType::Plan_dft_c2r_3d(outputSize[2],outputSize[1],outputSize[0],
-                                       this->m_InputBuffer,this->m_OutputBuffer,
+        plan = FFTWProxyType::Plan_dft_c2r_3d(outputSize[2],outputSize[1],outputSize[0],
+                                       in,
+				       out,
                                        FFTW_ESTIMATE);
         break;
       default:
@@ -111,27 +98,22 @@ GenerateData()
           {
           sizes[(VDimension - 1) - i] = outputSize[i];
           }
-        this->m_Plan = FFTWProxyType::Plan_dft_c2r(VDimension,sizes,
-                                    this->m_InputBuffer,
-                                    this->m_OutputBuffer,FFTW_ESTIMATE);
+        plan = FFTWProxyType::Plan_dft_c2r(VDimension,sizes,
+                                    in,
+				    out,
+                                    FFTW_ESTIMATE);
         delete [] sizes;
       }
-    this->m_PlanComputed = true;
-    }
   // copy the input, because it may be destroyed by computing the plan
-  memcpy(this->m_InputBuffer,
+  memcpy(in,
          inputPtr->GetBufferPointer(),
          total_inputSize * sizeof(typename FFTWProxyType::ComplexType));
-  fftw::Proxy<TPixel>::Execute(this->m_Plan);
-  // copy the output
-  memcpy(outputPtr->GetBufferPointer(),
-         this->m_OutputBuffer,
-         total_outputSize * sizeof(TPixel));
+  fftw::Proxy<TPixel>::Execute(plan);
+  FFTWProxyType::DestroyPlan(plan);
+  delete [] in;
   
   typedef ImageRegionIterator< TOutputImageType >   IteratorType;
-  
   IteratorType it(outputPtr,outputPtr->GetLargestPossibleRegion());
-
   while( !it.IsAtEnd() )
     {
     it.Set( it.Value() / total_outputSize );
