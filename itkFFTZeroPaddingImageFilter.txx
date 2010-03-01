@@ -26,8 +26,8 @@
 
 namespace itk {
 
-template <class TInputImage, class TOutputImage>
-FFTZeroPaddingImageFilter<TInputImage, TOutputImage>
+template <class TInputImage, class TInputKernel, class TOutputImage, class TKernelOutput>
+FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
 ::FFTZeroPaddingImageFilter()
 {
   m_PadToPowerOfTwo = false;
@@ -36,9 +36,9 @@ FFTZeroPaddingImageFilter<TInputImage, TOutputImage>
   this->SetNthOutput( 1, OutputImageType::New() );
 }
 
-template <class TInputImage, class TOutputImage>
+template <class TInputImage, class TInputKernel, class TOutputImage, class TKernelOutput>
 void 
-FFTZeroPaddingImageFilter<TInputImage, TOutputImage>
+FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
 ::GenerateInputRequestedRegion()
 {
   // call the superclass' implementation of this method
@@ -63,23 +63,23 @@ FFTZeroPaddingImageFilter<TInputImage, TOutputImage>
 }
 
 
-template <class TInputImage, class TOutputImage>
+template <class TInputImage, class TInputKernel, class TOutputImage, class TKernelOutput>
 void 
-FFTZeroPaddingImageFilter<TInputImage, TOutputImage>
+FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
 ::GenerateOutputInformation()
 {
   // call the superclass' implementation of this method
   Superclass::GenerateOutputInformation();
   
-  const InputImageType * input0 = this->GetInput(0);
-  const InputImageType * input1 = this->GetInput(1);
+  const InputImageType * input0 = this->GetInput();
+  const InputKernelType * input1 = this->GetInputKernel();
   if ( !input0 || !input1 )
     { 
     return;
     }
   
-  OutputImageType * output0 = this->GetOutput(0);
-  OutputImageType * output1 = this->GetOutput(1);
+  OutputImageType * output0 = this->GetOutput();
+  OutputKernelType * output1 = this->GetOutputKernel();
   
   RegionType region0 = input0->GetLargestPossibleRegion();
   RegionType region1 = input1->GetLargestPossibleRegion();
@@ -107,16 +107,16 @@ FFTZeroPaddingImageFilter<TInputImage, TOutputImage>
 }
 
 
-template<class TInputImage, class TOutputImage>
+template<class TInputImage, class TInputKernel, class TOutputImage, class TKernelOutput>
 void
-FFTZeroPaddingImageFilter<TInputImage, TOutputImage>
+FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
 ::GenerateData()
 {
   this->AllocateOutputs();
-  const InputImageType * input0 = this->GetInput(0);
-  const InputImageType * input1 = this->GetInput(1);
-  OutputImageType * output0 = this->GetOutput(0);
-  OutputImageType * output1 = this->GetOutput(1);
+  const InputImageType * input0 = this->GetInput();
+  const InputKernelType * input1 = this->GetInputKernel();
+  OutputImageType * output0 = this->GetOutput();
+  OutputKernelType * output1 = this->GetOutputKernel();
   RegionType ir0 = input0->GetLargestPossibleRegion();
   RegionType ir1 = input1->GetLargestPossibleRegion();
   RegionType or0 = output0->GetLargestPossibleRegion();
@@ -147,7 +147,8 @@ FFTZeroPaddingImageFilter<TInputImage, TOutputImage>
   pad0->Update();
   this->GraftOutput( pad0->GetOutput() );
 
-  typename PadType::Pointer pad1 = PadType::New();
+  typedef typename itk::ConstantPadImageFilter< InputKernelType, OutputKernelType > KernelPadType;
+  typename KernelPadType::Pointer pad1 = KernelPadType::New();
   pad1->SetInput( input1 );
   pad1->SetNumberOfThreads( this->GetNumberOfThreads() );
   for( int i=0; i<ImageDimension; i++ )
@@ -162,7 +163,7 @@ FFTZeroPaddingImageFilter<TInputImage, TOutputImage>
   pad1->SetPadLowerBound( s );
   progress->RegisterInternalFilter( pad1, 0.5f );
   
-  typedef typename itk::ChangeInformationImageFilter< OutputImageType > ChangeType;
+  typedef typename itk::ChangeInformationImageFilter< OutputKernelType > ChangeType;
   typename ChangeType::Pointer change = ChangeType::New();
   change->SetInput( pad1->GetOutput() );
   change->SetUseReferenceImage( true );
@@ -176,9 +177,9 @@ FFTZeroPaddingImageFilter<TInputImage, TOutputImage>
 }
 
 
-template<class TInputImage, class TOutputImage>
+template<class TInputImage, class TInputKernel, class TOutputImage, class TKernelOutput>
 void
-FFTZeroPaddingImageFilter<TInputImage, TOutputImage>
+FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
 ::PrintSelf(std::ostream &os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
