@@ -89,8 +89,8 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
   IndexType idx;
   for( int i=0; i<ImageDimension; i++ )
     {
-    size[i] = region0.GetSize()[i] + 2 * region1.GetSize()[i];
-    idx[i] = region0.GetIndex()[i] - region1.GetSize()[i];
+    size[i] = region0.GetSize()[i] + region1.GetSize()[i];
+    idx[i] = region0.GetIndex()[i] - region1.GetSize()[i] / 2;
     if( m_PadToPowerOfTwo )
       {
       // we may have to change the size of the region so that it is a power of 2
