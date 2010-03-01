@@ -88,7 +88,7 @@ GenerateData()
       plan = FFTWProxyType::Plan_dft_r2c_1d(inputSize[0],
                                            in,
                                            out,
-                                           FFTW_ESTIMATE|FFTW_PRESERVE_INPUT,
+                                           flags,
 					   this->GetNumberOfThreads());
       break;
     case 2:
@@ -96,7 +96,7 @@ GenerateData()
                                            inputSize[0],
                                            in,
                                            out,
-                                           FFTW_ESTIMATE|FFTW_PRESERVE_INPUT,
+                                           flags,
 					   this->GetNumberOfThreads());
       break;
     case 3:
@@ -105,7 +105,7 @@ GenerateData()
                                            inputSize[0],
                                            in,
                                            out,
-                                           FFTW_ESTIMATE|FFTW_PRESERVE_INPUT,
+                                           flags,
 					   this->GetNumberOfThreads());
       break;
     default:
@@ -118,7 +118,7 @@ GenerateData()
       plan = FFTWProxyType::Plan_dft_r2c(VDimension,sizes,
                                         in,
                                         out,
-                                        FFTW_ESTIMATE|FFTW_PRESERVE_INPUT,
+                                        flags,
 					this->GetNumberOfThreads());
       delete [] sizes;
     }
