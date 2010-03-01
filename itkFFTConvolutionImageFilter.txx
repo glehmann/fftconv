@@ -75,6 +75,7 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   typename NormType::Pointer norm = NormType::New();
   norm->SetInput( kernel );
   norm->SetNumberOfThreads( this->GetNumberOfThreads() );
+  norm->SetReleaseDataFlag( true );
   progress->RegisterInternalFilter( norm, 0.01f );
 
   typedef itk::FFTZeroPaddingImageFilter< InputImageType, InternalImageType, InternalImageType, InternalImageType > PadType;
@@ -82,12 +83,14 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   pad->SetInput( input );
   pad->SetInputKernel( norm->GetOutput() );
   pad->SetNumberOfThreads( this->GetNumberOfThreads() );
+  pad->SetReleaseDataFlag( true );
   progress->RegisterInternalFilter( pad, 0.05f );
 
   typedef itk::FFTRealToComplexConjugateImageFilter< FFTPrecisionType, ImageDimension > FFTType;
   typename FFTType::Pointer fft = FFTType::New();
   fft->SetInput( pad->GetOutput() );
   fft->SetNumberOfThreads( this->GetNumberOfThreads() );
+  fft->SetReleaseDataFlag( true );
   progress->RegisterInternalFilter( fft, 0.25f );
 
   // vnl filters need a size which is a power of 2
@@ -97,11 +100,13 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   typename ShiftType::Pointer shift = ShiftType::New();
   shift->SetInput( pad->GetOutputKernel() );
   shift->SetNumberOfThreads( this->GetNumberOfThreads() );
+  shift->SetReleaseDataFlag( true );
   progress->RegisterInternalFilter( shift, 0.04f );
   
   typename FFTType::Pointer fftk = FFTType::New();
   fftk->SetInput( shift->GetOutput() );
   fftk->SetNumberOfThreads( this->GetNumberOfThreads() );
+  fftk->SetReleaseDataFlag( true );
   progress->RegisterInternalFilter( fftk, 0.25f );
   
   typedef itk::MultiplyImageFilter< typename FFTType::OutputImageType,
@@ -111,12 +116,15 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   mult->SetInput( 0, fft->GetOutput() );
   mult->SetInput( 1, fftk->GetOutput() );
   mult->SetNumberOfThreads( this->GetNumberOfThreads() );
+  mult->SetReleaseDataFlag( true );
+  mult->SetInPlace( true );
   progress->RegisterInternalFilter( mult, 0.1f );
   
   typedef itk::FFTComplexConjugateToRealImageFilter< FFTPrecisionType, ImageDimension > IFFTType;
   typename IFFTType::Pointer ifft = IFFTType::New();
   ifft->SetInput( mult->GetOutput() );
   ifft->SetNumberOfThreads( this->GetNumberOfThreads() );
+  ifft->SetReleaseDataFlag( true );
   progress->RegisterInternalFilter( ifft, 0.25f );
   
   typedef itk::RegionFromReferenceImageFilter< InternalImageType, OutputImageType > CropType;
