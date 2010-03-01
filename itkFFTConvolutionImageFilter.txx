@@ -81,8 +81,6 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   typename PadType::Pointer pad = PadType::New();
   pad->SetInput( input );
   pad->SetInputKernel( norm->GetOutput() );
-  // TODO: check if this is needed
-  pad->SetPadToPowerOfTwo( true );
   pad->SetNumberOfThreads( this->GetNumberOfThreads() );
   progress->RegisterInternalFilter( pad, 0.05f );
 
@@ -91,6 +89,9 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   fft->SetInput( pad->GetOutput() );
   fft->SetNumberOfThreads( this->GetNumberOfThreads() );
   progress->RegisterInternalFilter( fft, 0.25f );
+
+  // vnl filters need a size which is a power of 2
+  pad->SetPadToPowerOfTwo( std::string(fft->GetNameOfClass()).find("Vnl") == 0 );
 
   typedef itk::FFTShiftImageFilter< InternalImageType, InternalImageType > ShiftType;
   typename ShiftType::Pointer shift = ShiftType::New();
