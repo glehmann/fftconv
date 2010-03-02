@@ -72,9 +72,14 @@ protected:
     {
     }
 
+  virtual void UpdateOutputData(DataObject *output);
+  
 private:
   FFTWComplexConjugateToRealImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
+  
+  bool m_CanUseDestructiveAlgorithm;
+
 };
 
 

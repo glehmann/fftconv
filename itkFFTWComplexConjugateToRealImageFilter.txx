@@ -68,7 +68,25 @@ GenerateData()
     total_inputSize *= inputSize[i];
     }
 
-    typename FFTWProxyType::ComplexType * in = new typename FFTWProxyType::ComplexType[total_inputSize];
+    typename FFTWProxyType::ComplexType * in;
+    // complex to real transform don't have any algorithm which support the FFTW_PRESERVE_INPUT at this time.
+    // So if the input can't be destroyed, we have to copy the input data to a buffer before running
+    // the ifft.
+    if( m_CanUseDestructiveAlgorithm )
+      {
+      // ok, so lets use the input buffer directly, to save some memory
+      in = (typename FFTWProxyType::ComplexType*)inputPtr->GetBufferPointer();
+      }
+    else
+      {
+      // we must use a buffer where fftw can work and destroy what it wants
+      in = new typename FFTWProxyType::ComplexType[total_inputSize];
+      // no need to copy the data after the plan creation: FFTW_ESTIMATE ensure that the input
+      // in not destroyed during this step
+      memcpy(in,
+             inputPtr->GetBufferPointer(),
+             total_inputSize * sizeof(typename FFTWProxyType::ComplexType));
+      }
     TPixel * out = outputPtr->GetBufferPointer();
     typename FFTWProxyType::PlanType plan;
     
@@ -108,13 +126,14 @@ GenerateData()
 				    this->GetNumberOfThreads());
         delete [] sizes;
       }
-  // copy the input, because it may be destroyed by computing the plan
-  memcpy(in,
-         inputPtr->GetBufferPointer(),
-         total_inputSize * sizeof(typename FFTWProxyType::ComplexType));
   fftw::Proxy<TPixel>::Execute(plan);
+  
+  // some cleanup
   FFTWProxyType::DestroyPlan(plan);
-  delete [] in;
+  if( !m_CanUseDestructiveAlgorithm )
+    {
+    delete [] in;
+    }
   
   typedef ImageRegionIterator< TOutputImageType >   IteratorType;
   IteratorType it(outputPtr,outputPtr->GetLargestPossibleRegion());
@@ -132,5 +151,17 @@ FullMatrix()
   return false;
 }
 
+
+template <typename TPixel,unsigned int VDimension>
+void
+FFTWComplexConjugateToRealImageFilter<TPixel,VDimension>::
+UpdateOutputData(DataObject * output)
+{
+  // we need to catch that information now, because it is changed later
+  // during the pipeline execution, and thus can't be grabbed in
+  // GenerateData().
+  m_CanUseDestructiveAlgorithm = this->GetInput()->GetReleaseDataFlag();
+  Superclass::UpdateOutputData( output );
+}
 }// namespace itk
 #endif // _itkFFTWComplexConjugateToRealImageFilter_txx
