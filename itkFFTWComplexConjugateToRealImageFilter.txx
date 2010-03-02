@@ -31,7 +31,7 @@ namespace itk
 template <typename TPixel, unsigned int VDimension>
 void
 FFTWComplexConjugateToRealImageFilter<TPixel,VDimension>::
-GenerateData()
+BeforeThreadedGenerateData()
 {
   // get pointers to the input and output
   typename TInputImageType::ConstPointer  inputPtr  = this->GetInput();
@@ -134,15 +134,23 @@ GenerateData()
     {
     delete [] in;
     }
-  
+}
+
+template <typename TPixel, unsigned int VDimension>
+void
+FFTWComplexConjugateToRealImageFilter<TPixel,VDimension>::
+ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int threadId )
+{
   typedef ImageRegionIterator< TOutputImageType >   IteratorType;
-  IteratorType it(outputPtr,outputPtr->GetLargestPossibleRegion());
+  unsigned long total_outputSize = this->GetOutput()->GetRequestedRegion().GetNumberOfPixels();
+  IteratorType it(this->GetOutput(), outputRegionForThread);
   while( !it.IsAtEnd() )
     {
     it.Set( it.Value() / total_outputSize );
     ++it;
     }
 }
+
 template <typename TPixel,unsigned int VDimension>
 bool
 FFTWComplexConjugateToRealImageFilter<TPixel,VDimension>::

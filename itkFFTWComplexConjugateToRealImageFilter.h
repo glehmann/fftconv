@@ -48,6 +48,7 @@ public:
   /** Standard class typedefs. */
   typedef typename Superclass::TInputImageType  TInputImageType;
   typedef typename Superclass::TOutputImageType TOutputImageType;
+  typedef typename TOutputImageType::RegionType OutputImageRegionType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
@@ -62,7 +63,6 @@ public:
 
   //
   // these should be defined in every FFT filter class
-  virtual void GenerateData();  // generates output from input
   virtual bool FullMatrix();
 protected:
   FFTWComplexConjugateToRealImageFilter()
@@ -74,6 +74,9 @@ protected:
 
   virtual void UpdateOutputData(DataObject *output);
   
+  virtual void BeforeThreadedGenerateData();
+  void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, int threadId );
+   
 private:
   FFTWComplexConjugateToRealImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
