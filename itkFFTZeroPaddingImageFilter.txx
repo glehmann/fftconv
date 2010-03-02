@@ -90,6 +90,9 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
   for( int i=0; i<ImageDimension; i++ )
     {
     size[i] = region0.GetSize()[i] + region1.GetSize()[i];
+    // make sure that the size is even - this is very important for most fft
+    // algorithm efficiency
+    size[i] += size[i] % 2;
     idx[i] = region0.GetIndex()[i] - region1.GetSize()[i] / 2;
     if( m_PadToPowerOfTwo )
       {
