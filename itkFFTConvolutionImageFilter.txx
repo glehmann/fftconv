@@ -19,6 +19,7 @@
 
 #include "itkFFTConvolutionImageFilter.h"
 #include "itkProgressAccumulator.h"
+#include "itkFlipImageFilter.h"
 #include "itkFFTZeroPaddingImageFilter.h"
 #include "itkNormalizeToConstantImageFilter.h"
 #include "itkFFTShiftImageFilter.h"
@@ -71,12 +72,22 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
+  typedef itk::FlipImageFilter< KernelImageType > FlipType;
+  typename FlipType::Pointer flip = FlipType::New();
+  flip->SetInput( kernel );
+  typename FlipType::FlipAxesArrayType axes;
+  axes.Fill( true ); // we must flip all the axes
+  flip->SetFlipAxes( axes );
+  flip->SetNumberOfThreads( this->GetNumberOfThreads() );
+  flip->SetReleaseDataFlag( true );
+  progress->RegisterInternalFilter( flip, 0.005f );
+
   typedef itk::NormalizeToConstantImageFilter< KernelImageType, InternalImageType > NormType;
   typename NormType::Pointer norm = NormType::New();
-  norm->SetInput( kernel );
+  norm->SetInput( flip->GetOutput() );
   norm->SetNumberOfThreads( this->GetNumberOfThreads() );
   norm->SetReleaseDataFlag( true );
-  progress->RegisterInternalFilter( norm, 0.01f );
+  progress->RegisterInternalFilter( norm, 0.005f );
 
   typedef itk::FFTZeroPaddingImageFilter< InputImageType, InternalImageType, InternalImageType, InternalImageType > PadType;
   typename PadType::Pointer pad = PadType::New();
