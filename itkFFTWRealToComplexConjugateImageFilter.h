@@ -72,9 +72,14 @@ protected:
     }
 
   virtual bool FullMatrix();
+   
+  virtual void UpdateOutputData(DataObject *output);
+  
 private:
   FFTWRealToComplexConjugateImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
+  
+  bool m_CanUseDestructiveAlgorithm;
 
 };
 } // namespace itk

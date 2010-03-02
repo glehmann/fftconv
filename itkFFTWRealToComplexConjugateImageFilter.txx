@@ -75,7 +75,7 @@ GenerateData()
   TPixel * in = const_cast<TPixel*>(inputPtr->GetBufferPointer());
   typename FFTWProxyType::ComplexType * out = (typename FFTWProxyType::ComplexType*) outputPtr->GetBufferPointer();
   int flags = FFTW_ESTIMATE;
-  if( !inputPtr->GetReleaseDataFlag() )
+  if( !m_CanUseDestructiveAlgorithm )
     {
     // if the input is about to be destroyed, there is no need to force fftw
     // to use an non destructive algorithm. If it is not released however,
@@ -132,6 +132,18 @@ FFTWRealToComplexConjugateImageFilter<TPixel,VDimension>::
 FullMatrix()
 {
   return false;
+}
+
+template <typename TPixel,unsigned int VDimension>
+void
+FFTWRealToComplexConjugateImageFilter<TPixel,VDimension>::
+UpdateOutputData(DataObject * output)
+{
+  // we need to catch that information now, because it is changed later
+  // during the pipeline execution, and thus can't be grabbed in
+  // GenerateData().
+  m_CanUseDestructiveAlgorithm = this->GetInput()->GetReleaseDataFlag();
+  Superclass::UpdateOutputData( output );
 }
 
 } // namespace itk
