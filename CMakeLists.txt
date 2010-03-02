@@ -99,7 +99,28 @@ ENDIF(BUILD_TESTING)
 #any tests you can comment out or delete the following line.
 # ADD_TEST(Testname ExecutableToRun arg1 arg2 arg3)
 
-ADD_TEST(Test ${TEST_COMMAND}
-   check ${INPUT_IMAGE} out.png
-   --compare out.png ${CMAKE_CURRENT_SOURCE_DIR}/images/test.png
+ADD_TEST(ZeroPadding0 ${TEST_COMMAND}
+   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   zero-image-0.png zero-kernel-0.png
+   0
+   --compare zero-image-0.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-0.png
+   --compare zero-kernel-0.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-0.png
+)
+ADD_TEST(ZeroPadding1 ${TEST_COMMAND}
+   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   zero-image-1.png zero-kernel-1.png
+   1
+   --compare zero-image-1.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-1.png
+   --compare zero-kernel-1.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-1.png
+)
+ADD_TEST(Norm ${TEST_COMMAND}
+   norm ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   norm.png
+   10000
+   --compare norm.png ${CMAKE_CURRENT_SOURCE_DIR}/images/norm.png
+)
+ADD_TEST(Ref ${TEST_COMMAND}
+   ref ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif
+   ref.png
+   --compare ref.png ${CMAKE_CURRENT_SOURCE_DIR}/images/ref.png
 )
