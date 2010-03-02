@@ -35,6 +35,7 @@ int main(int argc, char * argv[])
   ConvolutionType::Pointer conv = ConvolutionType::New();
   conv->SetInput( 0, reader->GetOutput() );
   conv->SetInput( 1, reader2->GetOutput() );
+  conv->SetNormalize( true );
   itk::SimpleFilterWatcher watcher_norm(conv, "conv");
 
   typedef itk::ImageFileWriter< IType > WriterType;
