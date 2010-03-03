@@ -110,12 +110,19 @@ ADD_TEST(ZeroPadding0 ${TEST_COMMAND}
    --compare zero-image-0.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-0.png
    --compare zero-kernel-0.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-0.png
 )
-ADD_TEST(ZeroPadding1 ${TEST_COMMAND}
+ADD_TEST(ZeroPadding2 ${TEST_COMMAND}
    zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
-   zero-image-1.png zero-kernel-1.png
-   1
-   --compare zero-image-1.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-1.png
-   --compare zero-kernel-1.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-1.png
+   zero-image-2.png zero-kernel-2.png
+   2
+   --compare zero-image-2.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-2.png
+   --compare zero-kernel-2.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-2.png
+)
+ADD_TEST(ZeroPadding13 ${TEST_COMMAND}
+   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   zero-image-13.png zero-kernel-13.png
+   13
+   --compare zero-image-13.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-13.png
+   --compare zero-kernel-13.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-13.png
 )
 ADD_TEST(Norm ${TEST_COMMAND}
    norm ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
