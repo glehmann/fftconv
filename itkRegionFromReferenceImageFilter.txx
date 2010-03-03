@@ -32,7 +32,7 @@ RegionFromReferenceImageFilter<TInputImage, TOutputImage>
     return;
     }
 
-//  Superclass::Superclass::GenerateOutputInformation();
+  // Superclass::Superclass::GenerateOutputInformation();
   this->SetExtractionRegion( this->GetReferenceImage()->GetLargestPossibleRegion() );
   Superclass::GenerateOutputInformation();
 }

@@ -89,7 +89,7 @@ GenerateData()
                                            in,
                                            out,
                                            flags,
-					   this->GetNumberOfThreads());
+                                           this->GetNumberOfThreads());
       break;
     case 2:
       plan = FFTWProxyType::Plan_dft_r2c_2d(inputSize[1],
@@ -97,7 +97,7 @@ GenerateData()
                                            in,
                                            out,
                                            flags,
-					   this->GetNumberOfThreads());
+                                           this->GetNumberOfThreads());
       break;
     case 3:
       plan = FFTWProxyType::Plan_dft_r2c_3d(inputSize[2],
@@ -106,7 +106,7 @@ GenerateData()
                                            in,
                                            out,
                                            flags,
-					   this->GetNumberOfThreads());
+                                           this->GetNumberOfThreads());
       break;
     default:
       int *sizes = new int[VDimension];
@@ -119,7 +119,7 @@ GenerateData()
                                         in,
                                         out,
                                         flags,
-					this->GetNumberOfThreads());
+                                        this->GetNumberOfThreads());
       delete [] sizes;
     }
   FFTWProxyType::Execute(plan);

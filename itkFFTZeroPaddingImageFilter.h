@@ -92,20 +92,20 @@ public:
    * The default is false.
    */
   void SetPadToPowerOfTwo( bool v )
-     {
-     if( v )
-	  {
-	  this->SetGreatestPrimeFactor( 2 );   
-	  }
-      else
-	  {
-	  this->SetGreatestPrimeFactor( 13 );
-	  }
+    {
+    if( v )
+      {
+      this->SetGreatestPrimeFactor( 2 );   
       }
+    else
+      {
+      this->SetGreatestPrimeFactor( 13 );
+      }
+    }
   bool GetPadToPowerOfTwo() const
-     {
-	return m_GreatestPrimeFactor == 2;
-     }
+    {
+    return m_GreatestPrimeFactor == 2;
+    }
   itkBooleanMacro(PadToPowerOfTwo);
 
   /**
@@ -121,7 +121,7 @@ public:
   itkGetConstMacro(GreatestPrimeFactor, int);
   itkSetMacro(GreatestPrimeFactor, int);
   
-   /** Set the kernel image */
+  /** Set the kernel image */
   void SetInputKernel(const InputKernelType *input)
     {
     // Process object is not const-correct so the const casting is required.
@@ -183,41 +183,41 @@ private:
 
   bool m_GreatestPrimeFactor;
 
-bool isPrime( int n )
-  {
-  int last = (int)vcl_sqrt( n );
-  for( int x=2; x<=last; x++ )
+  bool isPrime( int n )
     {
-    if( n%x == 0 )
+    int last = (int)vcl_sqrt( n );
+    for( int x=2; x<=last; x++ )
       {
-      return false;
-      }
-    }
-  return true;
-  }
-
-int greatestPrimeFactor( int n )
-  {
-  int v = 2;
-  while( v <= n )
-    {
-    if( n%v == 0 && isPrime( v ) )
-      {
-      if( n == v )
+      if( n%x == 0 )
         {
-        return v;
+        return false;
         }
-      n /= v;
-      v = 2;
       }
-    else
-      {
-      v += 1;
-      }
+    return true;
     }
-  // shouldn't be defined, but it's easier here to simply return the value
-  return n;
-  }
+  
+  int greatestPrimeFactor( int n )
+    {
+    int v = 2;
+    while( v <= n )
+      {
+      if( n%v == 0 && isPrime( v ) )
+        {
+        if( n == v )
+          {
+          return v;
+          }
+        n /= v;
+        v = 2;
+        }
+      else
+        {
+        v += 1;
+        }
+      }
+    // shouldn't be defined, but it's easier here to simply return the value
+    return n;
+    }
 
 }; // end of class
 
