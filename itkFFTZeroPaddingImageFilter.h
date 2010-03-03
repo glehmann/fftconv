@@ -91,10 +91,36 @@ public:
    * This is required for vnl implementation of FFT, but not for FFTW.
    * The default is false.
    */
-  itkSetMacro(PadToPowerOfTwo, bool);
-  itkGetConstMacro(PadToPowerOfTwo, bool);
+  void SetPadToPowerOfTwo( bool v )
+     {
+     if( v )
+	  {
+	  this->SetGreatestPrimeFactor( 2 );   
+	  }
+      else
+	  {
+	  this->SetGreatestPrimeFactor( 13 );
+	  }
+      }
+  bool GetPadToPowerOfTwo() const
+     {
+	return m_GreatestPrimeFactor == 2;
+     }
   itkBooleanMacro(PadToPowerOfTwo);
 
+  /**
+   * Set/Get the greatest prime factor allowed on the size of the padded image.
+   * The filter increase the size of the image to reach a size with the greatest
+   * prime factor smaller or equal to the specified value. The default value is
+   * 13, which is the greatest prime number for which the FFT are precomputed,
+   * and thus gives very good performance.
+   * A greatest prime factor of 2 produce a size which is a power of 2, and thus
+   * is suitable for vnl base fft filters.
+   * A greatest prime factor of -1 disable the extra padding.
+   */
+  itkGetConstMacro(GreatestPrimeFactor, int);
+  itkSetMacro(GreatestPrimeFactor, int);
+  
    /** Set the kernel image */
   void SetInputKernel(const InputKernelType *input)
     {
@@ -155,7 +181,43 @@ private:
   FFTZeroPaddingImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  bool m_PadToPowerOfTwo;
+  bool m_GreatestPrimeFactor;
+
+bool isPrime( int n )
+  {
+  int last = (int)vcl_sqrt( n );
+  for( int x=2; x<=last; x++ )
+    {
+    if( n%x == 0 )
+      {
+      return false;
+      }
+    }
+  return true;
+  }
+
+int greatestPrimeFactor( int n )
+  {
+  int v = 2;
+  while( v <= n )
+    {
+    if( n%v == 0 && isPrime( v ) )
+      {
+      if( n == v )
+        {
+        return v;
+        }
+      n /= v;
+      v = 2;
+      }
+    else
+      {
+      v += 1;
+      }
+    }
+  // shouldn't be defined, but it's easier here to simply return the value
+  return n;
+  }
 
 }; // end of class
 

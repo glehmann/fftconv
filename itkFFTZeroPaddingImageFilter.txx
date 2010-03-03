@@ -30,7 +30,7 @@ template <class TInputImage, class TInputKernel, class TOutputImage, class TKern
 FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
 ::FFTZeroPaddingImageFilter()
 {
-  m_PadToPowerOfTwo = false;
+  m_GreatestPrimeFactor = 13;
   this->SetNumberOfRequiredInputs(2);
   this->SetNumberOfRequiredOutputs(2);
   this->SetNthOutput( 1, OutputImageType::New() );
@@ -90,15 +90,16 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
   for( int i=0; i<ImageDimension; i++ )
     {
     size[i] = region0.GetSize()[i] + region1.GetSize()[i];
-    // make sure that the size is even - this is very important for most fft
-    // algorithm efficiency
-    size[i] += size[i] % 2;
     idx[i] = region0.GetIndex()[i] - region1.GetSize()[i] / 2;
-    if( m_PadToPowerOfTwo )
+//    if( m_GreatestPrimeFactor != -1 )
+    if( false )
       {
-      // we may have to change the size of the region so that it is a power of 2
-      // lets find the closest power of two which is greater or equal to the actual size
-      unsigned long s2 = (unsigned long)vcl_pow(2.0f, (float)Math::Ceil(vcl_log((float)size[i])/vcl_log(2.0)));
+      long s2 = size[i];
+//      while( greatestPrimeFactor( s2 ) > m_GreatestPrimeFactor )
+      while( greatestPrimeFactor( s2 ) > 13 )
+        {
+        s2++;
+        }
       idx[i] -= ( s2 - size[i] ) / 2;
       size[i] = s2;
       }
@@ -187,7 +188,7 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "PadToPowerOfTwo: "  << m_PadToPowerOfTwo << std::endl;
+  os << indent << "GreatestPrimeFactor: "  << m_GreatestPrimeFactor << std::endl;
 }
   
 }// end namespace itk
