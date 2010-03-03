@@ -116,7 +116,7 @@ public:
    * and thus gives very good performance.
    * A greatest prime factor of 2 produce a size which is a power of 2, and thus
    * is suitable for vnl base fft filters.
-   * A greatest prime factor of -1 disable the extra padding.
+   * A greatest prime factor of 1 or less - typically 0 - disable the extra padding.
    */
   itkGetConstMacro(GreatestPrimeFactor, int);
   itkSetMacro(GreatestPrimeFactor, int);
@@ -181,7 +181,7 @@ private:
   FFTZeroPaddingImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  bool m_GreatestPrimeFactor;
+  int m_GreatestPrimeFactor;
 
   bool isPrime( int n )
     {

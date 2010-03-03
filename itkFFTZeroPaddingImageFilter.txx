@@ -91,12 +91,10 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
     {
     size[i] = region0.GetSize()[i] + region1.GetSize()[i];
     idx[i] = region0.GetIndex()[i] - region1.GetSize()[i] / 2;
-//    if( m_GreatestPrimeFactor != -1 )
-    if( false )
+    if( m_GreatestPrimeFactor > 1 )
       {
       long s2 = size[i];
-//      while( greatestPrimeFactor( s2 ) > m_GreatestPrimeFactor )
-      while( greatestPrimeFactor( s2 ) > 13 )
+      while( greatestPrimeFactor( s2 ) > m_GreatestPrimeFactor )
         {
         s2++;
         }
