@@ -1,3 +1,6 @@
+#include "itkFFTWRealToComplexConjugateImageFilter.h"
+#include "itkFFTWComplexConjugateToRealImageFilter.h"
+
 #include "itkImageFileReader.h"
 #include "itkTimeProbe.h"
 #include "itkConvolutionImageFilter.h"
