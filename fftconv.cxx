@@ -2,6 +2,8 @@
 #include "itkImageFileWriter.h"
 #include "itkSimpleFilterWatcher.h"
 
+#include "itkFFTWRealToComplexConjugateImageFilter.h"
+#include "itkFFTWComplexConjugateToRealImageFilter.h"
 #include "itkFFTConvolutionImageFilter.h"
 
 
