@@ -112,8 +112,8 @@ public:
    * Set/Get the greatest prime factor allowed on the size of the padded image.
    * The filter increase the size of the image to reach a size with the greatest
    * prime factor smaller or equal to the specified value. The default value is
-   * 13, which is the greatest prime number for which the FFT are precomputed,
-   * and thus gives very good performance.
+   * 13, which is the greatest prime number for which the FFT are precomputed
+   * in FFTW, and thus gives very good performance.
    * A greatest prime factor of 2 produce a size which is a power of 2, and thus
    * is suitable for vnl base fft filters.
    * A greatest prime factor of 1 or less - typically 0 - disable the extra padding.

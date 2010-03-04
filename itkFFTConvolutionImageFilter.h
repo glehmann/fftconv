@@ -114,6 +114,22 @@ public:
     this->SetKernelImage( input );
     }
 
+  /**
+   * Set/Get the greatest prime factor allowed on the size of the padded image.
+   * The filter increase the size of the image to reach a size with the greatest
+   * prime factor smaller or equal to the specified value. The default value is
+   * 13, which is the greatest prime number for which the FFT are precomputed
+   * in FFTW, and thus gives very good performance.
+   * A greatest prime factor of 2 produce a size which is a power of 2, and thus
+   * is suitable for vnl base fft filters.
+   * A greatest prime factor of 1 or less - typically 0 - disable the extra padding.
+   *
+   * Warning: this parameter is not used (and useful) only when ITK is built with
+   * FFTW support.
+   */
+  itkGetConstMacro(GreatestPrimeFactor, int);
+  itkSetMacro(GreatestPrimeFactor, int);
+  
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputHasPixelTraitsCheck,
@@ -134,10 +150,13 @@ protected:
    * to other filters. */
   void GenerateData();
   
+  void PrintSelf(std::ostream& os, Indent indent) const;
 
 private:
   FFTConvolutionImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
+
+  int m_GreatestPrimeFactor;
 
 }; // end of class
 

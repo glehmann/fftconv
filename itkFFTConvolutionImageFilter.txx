@@ -34,6 +34,7 @@ template <class TInputImage, class TKernelImage, class TOutputImage, class TFFTP
 FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision>
 ::FFTConvolutionImageFilter()
 {
+  m_GreatestPrimeFactor = 13;
   this->SetNumberOfRequiredInputs(2);
 }
 
@@ -105,7 +106,14 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   progress->RegisterInternalFilter( fft, 0.25f );
 
   // vnl filters need a size which is a power of 2
-  pad->SetPadToPowerOfTwo( std::string(fft->GetNameOfClass()).find("Vnl") == 0 );
+  if( std::string(fft->GetNameOfClass()).find("Vnl") == 0 )
+    {
+    pad->SetPadToPowerOfTwo( true );
+    }
+  else
+    {
+    pad->SetGreatestPrimeFactor( m_GreatestPrimeFactor );
+    }
 
   typedef itk::FFTShiftImageFilter< InternalImageType, InternalImageType > ShiftType;
   typename ShiftType::Pointer shift = ShiftType::New();
@@ -149,6 +157,16 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   crop->Update();
   this->GraftOutput( crop->GetOutput() );
 }
-  
+
+template<class TInputImage, class TKernelImage, class TOutputImage, class TFFTPrecision>
+void
+FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision>
+::PrintSelf(std::ostream &os, Indent indent) const
+{
+  Superclass::PrintSelf(os, indent);
+
+  os << indent << "GreatestPrimeFactor: "  << m_GreatestPrimeFactor << std::endl;
+}
+
 }// end namespace itk
 #endif
