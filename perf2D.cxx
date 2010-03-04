@@ -7,8 +7,13 @@
 #include "itkFFTConvolutionImageFilter.h"
 #include <iomanip>
 
-int main(int, char * argv[])
+int main(int argc, char * argv[])
 {
+  if( argc < 2 )
+    {
+    std::cerr << "usage: " << argv[0] << " intput [gpf]" << std::endl;
+    }
+   
   const int dim = 2;
   typedef unsigned char PType;
   typedef itk::Image< PType, dim >    IType;
@@ -27,7 +32,11 @@ int main(int, char * argv[])
   typedef itk::FFTConvolutionImageFilter< IType > FFTConvType;
   FFTConvType::Pointer fftconv = FFTConvType::New();
   fftconv->SetInput( reader->GetOutput() );
-
+  if( argc >= 3 )
+    {
+    fftconv->SetGreatestPrimeFactor( atoi(argv[2]) );
+    }
+   
   reader->Update();
   
   std::vector< int > radiusList;
