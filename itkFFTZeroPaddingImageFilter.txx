@@ -101,6 +101,10 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
       idx[i] -= ( s2 - size[i] ) / 2;
       size[i] = s2;
       }
+    else if( m_GreatestPrimeFactor == 1 )
+      {
+      size[i] += size[i] % 2;
+      }
     }
   RegionType region( idx, size );
   output0->SetLargestPossibleRegion( region );
