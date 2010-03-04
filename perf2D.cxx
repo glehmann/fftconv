@@ -48,7 +48,7 @@ int main(int argc, char * argv[])
   radiusList.push_back( 50 );
   radiusList.push_back( 100 );
   
-  std::cout << "#radius" << "\t" 
+  std::cout << "#size" << "\t" 
             << "conv" << "\t" 
             << "fft" << "\t" 
             << std::endl;
