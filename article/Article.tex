@@ -33,16 +33,18 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 % The title should be descriptive enough for people to be able to find
 % the relevant document. 
-\title{}
+\title{FFT based convolution}
 
 % Increment the release number whenever significant changes are made.
 % The author and/or editor can define 'significant' however they like.
-\release{0.00}
+% \release{0.00}
 
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
-\author{}
-\authoraddress{}
+\author{Ga\"etan Lehmann{$^1$}}
+\authoraddress{{$^1$}INRA, UMR 1198; ENVA; CNRS, FRE 2857, Biologie du
+D\'eveloppement et 
+Reproduction, Jouy en Josas, F-78350, France.}
 
 \begin{document}
 \maketitle
@@ -54,11 +56,191 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 \begin{abstract}
 \noindent
-% The abstract should be a paragraph or two long, and describe the
-% scope of the document.
+
+The Fourier transform of the convolution of two images is equal to the product of their
+Fourier transform. With this definition, it is possible to create a convolution filter
+based on the Fast Fourier Transform (FFT). The interesting complexity characteristics of
+this transform gives a very efficient convolution filter for large kernel images.
+
+This paper provides such a filter, as well as a detailed description of the implementation
+choices and a comparison with the "simple" itk::ConvolutionImageFilter.
+
 \end{abstract}
 
 \tableofcontents
+
+\section{Introduction}
+
+The convolution of two image is a very cpu demanding task, with a complexity of $O(N*M)$ where $N$ is
+the number of pixel of the first image and $M$ the number of pixels of the second. Usually, the size
+of one of the image is a lot smaller than the one of the other -- the smaller is often called the
+kernel. The quite small size of the kernel makes the convolution computable in a very usable time,
+but when the size of the kernel grows, the computation time quickly becomes impraticable.
+
+Fortunately, the convolution of two images is simply the product of those two images pixel wise in
+the frequency domain, with a complexity of $O(max(N, M))$. The size of the kernel, which is usually
+way smaller than the image, has no effect on the computation time. The cost of the Fourier Transform
+can be quite high however -- that's why the FFT based convolution is more efficient only for big
+kernel images.
+
+\section{FFT based convolution step by step}
+
+The FFT based convolution requires several step to be performed. They are detailed one by one.
+
+\subsection{Zero padding}
+
+The images will be padded with zeros for several reasons:
+\begin{itemize}
+  \item to make their size match. This is required to perform the multiplication in the frequency
+  domain.
+  \item  to avoid the border effects. Because the FFT considere the image as a cyclic signal, the
+  image must be padded to avoid the border effects. The final image size for all the dimensions
+  must be at least $P+Q-1$, where $P$ is the size of the first image on a dimension and $P$ the size
+  of the other image on the same dimension.
+  \item to make the FFT possible, or to enhance its performance. Some FFT implementations, like the
+  VNL one, can only be run on an image where the size on all the dimensions are a power of two.
+  Some other implementations, like FFTW's one, are performing very differently depending on the
+  size of the image. Adding a few more pixels on the border of the image can lead them to perform
+  a lot better.
+\end{itemize}
+
+\subsection{Normalization}
+
+To preserve the intensity of the pixel in the convolved image, the kernel must be normalized to one
+-- the sum of all its pixel is one.
+
+\subsection{Flipping}
+
+The convolution is a flipping transform by nature: the shape of the kernel image can be found in the
+convolved image, but flipped on all the axes. To get the same behavior when computing the product
+in the frequency domain, the kernel image must be flipped prior to the FFT.
+
+\subsection{Shifting (centering)}
+
+The convolution is usually done with a centered kernel. If the kernel is not centered, the input image
+is shifted in the convolved image, by the same shift than the shift of the kernel. However, for the
+FFT, the center pixel is the one in the corner, not the one in the center of the image, as is it 
+usual for a human, and so the kernel must be shifted.
+This shift must be done after the padding, and before the FFT.
+
+Another option, not used here, is to shift the image after the inverse Fourier transform.
+
+\subsection{Fourier transform}
+
+The Fourier transform is performed on the padded input image, and on the normalized, padded, flipped
+and shifted kernel.
+
+\subsection{Frequency domain multiplication}
+
+The convolution is performed in the frequency domain, simply by computing the product of the FFT of
+the image and of the FFT on the kernel pixel wise.
+
+\subsection{Inverse Fourier transform}
+
+The convolved image in the frequency domain is transformed to the space domain with an inverse Fourier
+transform.
+
+\subsection{Cropping}
+
+The image is cropped to fit the size of the input image.
+
+
+\section{Implementation}
+
+The step by step transform described in the previous chapter can perfectly be implemented in a pure
+ITK pipeline model. The few filters which were missing for this task has been implemented, and some
+other has been enhanced to improve their performance.
+
+\subsection{NormalizeToConstantImageFilter}
+
+The normalization to one cannot be done without going outside of the ITK pipeline model at this time.
+itk::NormalizeToConstantImageFilter has been added for this task.
+
+This filter is implemented as a minipipeline of two filters:
+\begin{itemize}
+  \item a itk::StatisticsImageFilter, to compute the sum of the pixels in the image;
+  \item a itk::DivideByConstantImageFilter, to actually normalize the pixel values.
+\end{itemize}
+The use of itk::StatisticsImageFilter only to compute the sum might be a littel overkill. This filter
+is only used on the kernel which is usually quite small, so the performance impact on the whole
+FFT based convolution is small.
+
+\subsection{FFTZeroPaddingImageFilter}
+
+The padding step, as described in the previous chapter, has several goals, which leads to a single
+image size used to pad both the input image and the kernel.
+All the logic is implemented in itk::FFTZeroPaddingImageFilter.
+
+This filter is in charge of padding both images. It requires two input -- the image to convolve and
+the kernel. The pad size is computed according to both image sizes.
+
+The image to convolve is simply padded with zeros. The kernel requires a little more work to be
+centered in the padded image and to make its region match the one of the padded image to convolve.
+The padding and region changes are implemented as a minipipeline of itk::ConstantPadImageFilter and
+itk::ChangeInformationImageFilter.
+
+itk::FFTZeroPaddingImageFilter is also able to extend the padded region in order to enhance the FFT
+performance, or to make it possible when the FFT possible when it require a size which is a power of
+two. FFTW is able to work on any image size, but due to the algorithms useds, produce significantly
+more performant result with some specific sizes. The two main reasons are:
+\begin{itemize}
+  \item the decomposition composite sizes in smaller transforms using the Cooley–Tukey algorithm;
+  \itme the hard coded loop unrolling for the size which are prime numbers up to thirteen.
+\end{itemize}
+For these reasons, FFTW performs better when the size on all the dimension has its greatest prime
+factor smaller or equal to thirteen.
+The greatest prime factor can be simply computed with the algorithm described in figure \ref{greatestPrimeFactor}.
+
+
+
+\begin{pseudocode}{isPrime}{n}
+\FOREACH x \in [2, \sqrt{n}] \DO 
+\BEGIN
+  \IF n%x \eq 0
+  \THEN
+  \BEGIN
+    \RETURN \FALSE
+  \END 
+\END
+\RETURN \TRUE
+\end{pseudocode}
+
+\begin{pseudocode}{greatestPrimeFactor}{n}
+v \GETS 2
+\WHILE x \leq n \DO
+\BEGIN
+  \IF n%x \eq 0 \AND \CALL{isPrime}{v}
+  \THEN
+  \BEGIN
+    \IF n \eq v
+    \THEN
+      \RETURN \FALSE
+    \END
+    n \GETS n / v
+    v \GETS 2
+  \ELSE
+    v \GETS v + 1
+  \END 
+\END
+\end{pseudocode}
+
+\subsection{FFTW filters enhancements}
+\subsubsection{Thread support}
+fft et norm
+\subsubsection{Memory usage reduction}
+\subsubsection{Code safety}
+
+\subsection{RegionFromReferenceImageFilter}
+
+\subsection{FFTConvolutionImageFilter}
+
+\section{Performance}
+
+\subsection{Kernel size}
+
+\subsection{Greatest prime factor}
+
+\subsection{Number of threads}
 
 
 % \url{http://www.itk.org}
