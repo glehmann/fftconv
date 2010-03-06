@@ -221,10 +221,72 @@ x \GETS 2 \\
 \end{pseudocode}
 
 \subsection{FFTW filters enhancements}
+
+ITK provides FFT and inverse FFT filters based on the FFTW library. Those filters had some problems,
+or were missing some features. They have been enhanced to fit the needs of the FFT based convolution
+filter.
+
 \subsubsection{Thread support}
-fft et norm
+The FFTW filters were not multithreaded. There are two places were multithreading can take place: the
+FFTW execution and the normalization step.
+
+The FFTW execution can be threaded simply by calling $fftwf_plan_with_nthreads(threads);$ or $fftwf_plan_with_nthreads(threads);$, depending on the pixel type, before creating the plan. 
+itk::fftw::Proxy has been modified to provide this feature: an extra $thread$ parameter, which default
+to one to keep the backward compatibility, has been added to the method in charge of creating the plans.
+Then the itk::FFTWComplexConjugateToRealImageFilter and itk::FFTWRealToComplexConjugateImageFilter have
+been modified to pass their user defined number of threads to those methods.
+
+In order to implement the threading support in the normalization step in 
+itk::FFTWComplexConjugateToRealImageFilter, the execution of the FFTW library has been moved to 
+BeforeThreadedGenerateData(), and the normalization step to ThreadedGenerateData().
+
 \subsubsection{Memory usage reduction}
+
+FFTW filters were using a lot of memory, because they were allocating an internal buffer for the input 
+image, and an other one for the output image. Worth, these buffer were not deallocated at the end of
+the execution filter, keeping the memory usage very high even when the execution has completed.
+
+I guess the main reasons to do that were:
+\begin{itemize}
+  \item make sure that the buffers are properly aligned.
+  \item avoid the destruction of the input. The creation of the FFTW plan, and the execution of FFTW 
+  can destroy the input. This is most of the time not acceptable in ITK.
+  \item reuse the FFTW for a latter run. The plan include the memory location of the input and output
+  buffer, so the buffer can't be deallocated, as it may be the case with the filter input and output images.
+\end{itemize}
+
+The buffer were simply allocated with the $new$ operator, which is not enough to ensure a proper alignement
+on some plateforms, including Microsoft Windows and Linux.
+
+The destruction of the input can be avoided in the creation plan by using the $FFTW_ESTIMATE$ flag
+-- that flag was already used in the implementation. It can also be avoided while running FFTW, for 
+the real to complex transform, by also using the flag $FFTW_PRESERVE_INPUT$, so in 
+itk::FFTWRealToComplexConjugateImageFilter, there is no need for the input buffer. The case is a bit
+more difficult for the complex to real transform: FFTW does not provide any algorithm able to preserve
+the input, so the input must be copied to an internal buffer. There is a case however, when we don't
+care about destroying the input in ITK: when the ReleaseDataFlag is ON on the input. In that case, 
+itk::FFTWRealToComplexConjugateImageFilter has been modified to use the input image directly without 
+intermediate buffer. The detection of the ReleaseDataFlag is a bit difficult during the pipeline 
+execution: this flag is always modified to OFF before the call to $GenerateData()$ to avoid the 
+destruction by a minipipeline. In consequence, the detection of the ReleaseDataFlag is done at an 
+earlier stage in the pipeline execution, in $UpdateOutputData()$, and stored in a member variable.
+
+The latter reuse of the plan, while sensible when not using the $FFTW_ESTIMATE$ flag, is not much 
+interesting when it is used: the time needed to create the plan is very short -- way shorter than the
+FFT computation. Also, the number of threads and the image size are stored in the plan, and can't be 
+changed later, which doesn't fit well with ITK pipeline model. In the enhanced version, the plan is
+not kept between the filters execution, and so no intermediate output buffer is used, decreasing 
+significantly the needed memory.
+
 \subsubsection{Code safety}
+
+Only $fftwf_execute(plan);$ and $fftw_execute(plan);$ are thread safe in FFTW -- the other functions
+are not thread safe. In consequence, the call to all the other functions has been protected by a 
+global lock in the enhanced classes.
+
+Also, the check for the size of the image to know if the plan can be reused may not have been good 
+enough, because it was testing only the number of pixels and not the size on all the dimensions. 
+The plan is not kept between the execution, so this can be a problem anymore.
 
 \subsection{RegionFromReferenceImageFilter}
 
