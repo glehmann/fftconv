@@ -203,20 +203,14 @@ private:
       {
       if( n%v == 0 && isPrime( v ) )
         {
-        if( n == v )
-          {
-          return v;
-          }
         n /= v;
-        v = 2;
         }
       else
         {
         v += 1;
         }
       }
-    // shouldn't be defined, but it's easier here to simply return the value
-    return n;
+    return v;
     }
 
 }; // end of class
