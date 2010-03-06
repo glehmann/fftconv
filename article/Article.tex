@@ -26,6 +26,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 \usepackage{listings}
 % subfigures
 \usepackage{subfigure}
+\usepackage{pseudocode}
 
 
 %  This is a template for Papers to the Insight Journal. 
@@ -71,7 +72,7 @@ choices and a comparison with the "simple" itk::ConvolutionImageFilter.
 
 \section{Introduction}
 
-The convolution of two image is a very cpu demanding task, with a complexity of $O(N*M)$ where $N$ is
+The convolution of two image is a very cpu demanding task, with a complexity of $O(N \times M)$ where $N$ is
 the number of pixel of the first image and $M$ the number of pixels of the second. Usually, the size
 of one of the image is a lot smaller than the one of the other -- the smaller is often called the
 kernel. The quite small size of the kernel makes the convolution computable in a very usable time,
@@ -79,7 +80,8 @@ but when the size of the kernel grows, the computation time quickly becomes impr
 
 Fortunately, the convolution of two images is simply the product of those two images pixel wise in
 the frequency domain, with a complexity of $O(max(N, M))$. The size of the kernel, which is usually
-way smaller than the image, has no effect on the computation time. The cost of the Fourier Transform
+way smaller than the image, has no effect on the computation time, so the complexity is simply $O(N)$.
+The cost of the Fourier Transform
 can be quite high however -- that's why the FFT based convolution is more efficient only for big
 kernel images.
 
@@ -95,13 +97,13 @@ The images will be padded with zeros for several reasons:
   domain.
   \item  to avoid the border effects. Because the FFT considere the image as a cyclic signal, the
   image must be padded to avoid the border effects. The final image size for all the dimensions
-  must be at least $P+Q-1$, where $P$ is the size of the first image on a dimension and $P$ the size
+  must be at least $P+Q-1$, where $P$ is the size of the first image on a dimension and $Q$ the size
   of the other image on the same dimension.
   \item to make the FFT possible, or to enhance its performance. Some FFT implementations, like the
   VNL one, can only be run on an image where the size on all the dimensions are a power of two.
   Some other implementations, like FFTW's one, are performing very differently depending on the
   size of the image. Adding a few more pixels on the border of the image can lead them to perform
-  a lot better.
+  a lot better, as shown in chapter \ref{perf:gpf}.
 \end{itemize}
 
 \subsection{Normalization}
@@ -120,7 +122,9 @@ in the frequency domain, the kernel image must be flipped prior to the FFT.
 The convolution is usually done with a centered kernel. If the kernel is not centered, the input image
 is shifted in the convolved image, by the same shift than the shift of the kernel. However, for the
 FFT, the center pixel is the one in the corner, not the one in the center of the image, as is it 
-usual for a human, and so the kernel must be shifted.
+usual for a human. To avoid a shift in the convolved image, the pixels must be shifted to the corner
+of the image as expeced by the FFT.
+
 This shift must be done after the padding, and before the FFT.
 
 Another option, not used here, is to shift the image after the inverse Fourier transform.
@@ -148,8 +152,8 @@ The image is cropped to fit the size of the input image.
 \section{Implementation}
 
 The step by step transform described in the previous chapter can perfectly be implemented in a pure
-ITK pipeline model. The few filters which were missing for this task has been implemented, and some
-other has been enhanced to improve their performance.
+ITK pipeline model. The few filters which were missing for this task have been implemented, and some
+other have been enhanced to improve their performance.
 
 \subsection{NormalizeToConstantImageFilter}
 
@@ -161,22 +165,22 @@ This filter is implemented as a minipipeline of two filters:
   \item a itk::StatisticsImageFilter, to compute the sum of the pixels in the image;
   \item a itk::DivideByConstantImageFilter, to actually normalize the pixel values.
 \end{itemize}
-The use of itk::StatisticsImageFilter only to compute the sum might be a littel overkill. This filter
-is only used on the kernel which is usually quite small, so the performance impact on the whole
+The use of itk::StatisticsImageFilter only to compute the sum might be {\em a little overkill}. This filter
+is only used on the kernel, which is usually quite small, so the performance impact on the whole
 FFT based convolution is small.
 
 \subsection{FFTZeroPaddingImageFilter}
 
-The padding step, as described in the previous chapter, has several goals, which leads to a single
+The padding step, as described in the previous chapter, has several goals, which lead to a single
 image size used to pad both the input image and the kernel.
 All the logic is implemented in itk::FFTZeroPaddingImageFilter.
 
 This filter is in charge of padding both images. It requires two input -- the image to convolve and
 the kernel. The pad size is computed according to both image sizes.
 
-The image to convolve is simply padded with zeros. The kernel requires a little more work to be
-centered in the padded image and to make its region match the one of the padded image to convolve.
-The padding and region changes are implemented as a minipipeline of itk::ConstantPadImageFilter and
+The image to convolve is simply padded with zeros. The kernel, however, requires a little more work to be
+centered in the padded image, and to make its region match the one of the padded image to convolve.
+The padding and the region changes are implemented as a minipipeline of itk::ConstantPadImageFilter and
 itk::ChangeInformationImageFilter.
 
 itk::FFTZeroPaddingImageFilter is also able to extend the padded region in order to enhance the FFT
@@ -184,44 +188,36 @@ performance, or to make it possible when the FFT possible when it require a size
 two. FFTW is able to work on any image size, but due to the algorithms useds, produce significantly
 more performant result with some specific sizes. The two main reasons are:
 \begin{itemize}
-  \item the decomposition composite sizes in smaller transforms using the Cooley–Tukey algorithm;
-  \itme the hard coded loop unrolling for the size which are prime numbers up to thirteen.
+  \item the decomposition of images of composite sizes in smaller transforms using the
+  Cooley-Tukey algorithm;
+  \item the hard coded loop unrolling for the size which are prime numbers up to thirteen.
 \end{itemize}
-For these reasons, FFTW performs better when the size on all the dimension has its greatest prime
+For these reasons, FFTW performs better when the size on each dimension has its greatest prime
 factor smaller or equal to thirteen.
-The greatest prime factor can be simply computed with the algorithm described in figure \ref{greatestPrimeFactor}.
+The greatest prime factor can be simply computed with the algorithm described in algorithm \ref{greatestPrimeFactor}.
 
 
 
 \begin{pseudocode}{isPrime}{n}
 \FOREACH x \in [2, \sqrt{n}] \DO 
 \BEGIN
-  \IF n%x \eq 0
-  \THEN
-  \BEGIN
-    \RETURN \FALSE
-  \END 
-\END
+  \IF n \% x = 0 \THEN \RETURN \FALSE \\
+\END \\
 \RETURN \TRUE
 \end{pseudocode}
 
 \begin{pseudocode}{greatestPrimeFactor}{n}
-v \GETS 2
+\label{greatestPrimeFactor}
+x \GETS 2 \\
 \WHILE x \leq n \DO
 \BEGIN
-  \IF n%x \eq 0 \AND \CALL{isPrime}{v}
+  \IF n \bmod x = 0 \AND \CALL{isPrime}{x}
   \THEN
-  \BEGIN
-    \IF n \eq v
-    \THEN
-      \RETURN \FALSE
-    \END
-    n \GETS n / v
-    v \GETS 2
+    n \GETS n / x
   \ELSE
     v \GETS v + 1
-  \END 
-\END
+\END \\
+\RETURN x
 \end{pseudocode}
 
 \subsection{FFTW filters enhancements}
@@ -239,6 +235,7 @@ fft et norm
 \subsection{Kernel size}
 
 \subsection{Greatest prime factor}
+\label{perf:gpf}
 
 \subsection{Number of threads}
 
