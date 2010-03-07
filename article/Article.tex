@@ -223,74 +223,102 @@ x \GETS 2 \\
 \subsection{FFTW filters enhancements}
 
 ITK provides FFT and inverse FFT filters based on the FFTW library. Those filters had some problems,
-or were missing some features. They have been enhanced to fit the needs of the FFT based convolution
-filter.
+or were missing some features. They have been enhanced to fit the needs of the FFT based convolution.
 
 \subsubsection{Thread support}
-The FFTW filters were not multithreaded. There are two places were multithreading can take place: the
+The FFTW filters were not multithreaded. There are two places where multithreading can take place: the
 FFTW execution and the normalization step.
 
-The FFTW execution can be threaded simply by calling $fftwf_plan_with_nthreads(threads);$ or $fftwf_plan_with_nthreads(threads);$, depending on the pixel type, before creating the plan. 
-itk::fftw::Proxy has been modified to provide this feature: an extra $thread$ parameter, which default
-to one to keep the backward compatibility, has been added to the method in charge of creating the plans.
-Then the itk::FFTWComplexConjugateToRealImageFilter and itk::FFTWRealToComplexConjugateImageFilter have
+The FFTW execution can be threaded simply by calling \verb$fftwf_plan_with_nthreads(threads);$ or 
+\verb$fftwf_plan_with_nthreads(threads);$, depending on the pixel type, before creating the plan. 
+\verb$itk::fftw::Proxy$ has been modified to provide this feature: an extra \verb$thread$ parameter,
+which defaults
+to $1$ to keep the backward compatibility, has been added to the method in charge of creating the plans.
+Then the \verb$itk::FFTWComplexConjugateToRealImageFilter$ and
+\verb$itk::FFTWRealToComplexConjugateImageFilter$ have
 been modified to pass their user defined number of threads to those methods.
 
 In order to implement the threading support in the normalization step in 
-itk::FFTWComplexConjugateToRealImageFilter, the execution of the FFTW library has been moved to 
-BeforeThreadedGenerateData(), and the normalization step to ThreadedGenerateData().
+\verb$itk::FFTWComplexConjugateToRealImageFilter$, the execution of the FFTW library has been moved to 
+\verb$BeforeThreadedGenerateData()$, and the normalization step to \verb$ThreadedGenerateData()$.
 
 \subsubsection{Memory usage reduction}
 
 FFTW filters were using a lot of memory, because they were allocating an internal buffer for the input 
-image, and an other one for the output image. Worth, these buffer were not deallocated at the end of
+image, and an other one for the output image. Worth, these buffers were not deallocated at the end of
 the execution filter, keeping the memory usage very high even when the execution has completed.
 
 I guess the main reasons to do that were:
 \begin{itemize}
-  \item make sure that the buffers are properly aligned.
   \item avoid the destruction of the input. The creation of the FFTW plan, and the execution of FFTW 
   can destroy the input. This is most of the time not acceptable in ITK.
-  \item reuse the FFTW for a latter run. The plan include the memory location of the input and output
-  buffer, so the buffer can't be deallocated, as it may be the case with the filter input and output images.
+  \item reuse the FFTW plan for a latter run. The plan include the memory location of the input and output
+  buffers, so the buffers can't be deallocated, as it may be the case with the filter's input and output images.
 \end{itemize}
 
-The buffer were simply allocated with the $new$ operator, which is not enough to ensure a proper alignement
-on some plateforms, including Microsoft Windows and Linux.
-
-The destruction of the input can be avoided in the creation plan by using the $FFTW_ESTIMATE$ flag
+The destruction of the input can be avoided in the creation plan by using the \verb$FFTW_ESTIMATE$ flag
 -- that flag was already used in the implementation. It can also be avoided while running FFTW, for 
-the real to complex transform, by also using the flag $FFTW_PRESERVE_INPUT$, so in 
-itk::FFTWRealToComplexConjugateImageFilter, there is no need for the input buffer. The case is a bit
+the real to complex transform, by also using the flag \verb$FFTW_PRESERVE_INPUT$. So in 
+\verb$itk::FFTWRealToComplexConjugateImageFilter$, if the right flags are used, there is no need for
+the input buffer.
+The case is a bit
 more difficult for the complex to real transform: FFTW does not provide any algorithm able to preserve
 the input, so the input must be copied to an internal buffer. There is a case however, when we don't
-care about destroying the input in ITK: when the ReleaseDataFlag is ON on the input. In that case, 
-itk::FFTWRealToComplexConjugateImageFilter has been modified to use the input image directly without 
-intermediate buffer. The detection of the ReleaseDataFlag is a bit difficult during the pipeline 
-execution: this flag is always modified to OFF before the call to $GenerateData()$ to avoid the 
-destruction by a minipipeline. In consequence, the detection of the ReleaseDataFlag is done at an 
-earlier stage in the pipeline execution, in $UpdateOutputData()$, and stored in a member variable.
+care about destroying the input in ITK: when the \verb$ReleaseDataFlag$ is \verb$ON$ on the input of the filter.
+In that case, the input will be deallocated right after the end of the execution of the filter, and so
+there is no need to take care of the input -- it can be destroyed by the filter, and then deallocated.
+\verb$itk::FFTWRealToComplexConjugateImageFilter$ has been modified to use the input image directly without 
+intermediate buffer when \verb$ReleaseDataFlag$ is \verb$ON$. The detection of the \verb$ReleaseDataFlag$
+is a bit difficult during the pipeline 
+execution: this flag is always modified to \verb$OFF$ before the call to \verb$GenerateData()$ to avoid the 
+destruction by a minipipeline. In consequence, the detection of the \verb$ReleaseDataFlag$ is done at an 
+earlier stage in the pipeline execution, in \verb$UpdateOutputData()$, and stored in a member variable:
+\verb$m_CanUseDestructiveAlgorithm$.
 
-The latter reuse of the plan, while sensible when not using the $FFTW_ESTIMATE$ flag, is not much 
+The later reuse of the plan, while sensible when not using the \verb$FFTW_ESTIMATE$ flag, is not much 
 interesting when it is used: the time needed to create the plan is very short -- way shorter than the
 FFT computation. Also, the number of threads and the image size are stored in the plan, and can't be 
 changed later, which doesn't fit well with ITK pipeline model. In the enhanced version, the plan is
-not kept between the filters execution, and so no intermediate output buffer is used, decreasing 
+not kept between the filters execution, and so no intermediate output buffer are used, decreasing 
 significantly the needed memory.
+
+Another reason to create the internal buffer may be the need to align properly the image, to significantly
+improve the FFTW performance by using the SIMD operations. The buffer were simply allocated with the
+\verb$new$ operator, which is not enough to ensure a proper alignement
+on some plateforms, including Microsoft Windows and Linux.
+
 
 \subsubsection{Code safety}
 
-Only $fftwf_execute(plan);$ and $fftw_execute(plan);$ are thread safe in FFTW -- the other functions
+Only \verb$fftwf_execute(plan);$ and \verb$fftw_execute(plan);$ are thread safe in FFTW -- the other functions
 are not thread safe. In consequence, the call to all the other functions has been protected by a 
 global lock in the enhanced classes.
 
 Also, the check for the size of the image to know if the plan can be reused may not have been good 
 enough, because it was testing only the number of pixels and not the size on all the dimensions. 
-The plan is not kept between the execution, so this can be a problem anymore.
+The plan is not kept between the execution, so this can not be a problem anymore.
 
 \subsection{RegionFromReferenceImageFilter}
 
+At the end of the convolution, the image is cropped to return to the size of the input image. Again
+there is currently no option in ITK to do that fully in the pipeline model. In consequence, a new
+filter has been developped for this task.
+
+\verb$itk::RegionFromReferenceImageFilter$ is implemented as a subclass of \verb$itk::ExtractImageFilter$.
+This filter requires two inputs -- the first is the image to crop, the second is simply used to get 
+the region to extract in the first one. The reference image -- the second input -- is simply expected to
+be of type \verb$itk::ImageBase$ with the same dimension than the first one, and so it's type don't
+need to be specified in the template parameters.
+
 \subsection{FFTConvolutionImageFilter}
+
+\verb$itk::FFTConvolutionImageFilter$ is a convenient minipipeline filter which groups all the required
+filters to make the FFT based convolution in a single and easy to use filter.
+It sets the \verb$ReleaseDataFlag$ properly to keep the memory usage as low as possible, and propagate the
+user specified number of threads.
+
+It also expose the \verb$GreatestPrimeFactor$ accessors from \verb$itk::FFTZeroPaddingImageFilter$ to let
+the user choose between the extra performance added by the padding and the extra memory cost.
 
 \section{Performance}
 
