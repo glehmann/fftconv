@@ -35,6 +35,7 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
 ::FFTConvolutionImageFilter()
 {
   m_GreatestPrimeFactor = 13;
+  m_PadMethod = ZERO_FLUX_NEUMANN;
   this->SetNumberOfRequiredInputs(2);
 }
 
@@ -96,6 +97,7 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   pad->SetInputKernel( norm->GetOutput() );
   pad->SetNumberOfThreads( this->GetNumberOfThreads() );
   pad->SetReleaseDataFlag( true );
+  pad->SetPadMethod( m_PadMethod );
   progress->RegisterInternalFilter( pad, 0.05f );
 
   typedef itk::FFTRealToComplexConjugateImageFilter< FFTPrecisionType, ImageDimension > FFTType;
@@ -109,6 +111,11 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   if( std::string(fft->GetNameOfClass()).find("Vnl") == 0 )
     {
     pad->SetPadToPowerOfTwo( true );
+    // fake the cyclic behavior
+    if( m_PadMethod == NO_PADDING )
+      {
+      pad->SetPadMethod( WRAP );
+      }
     }
   else
     {
@@ -166,6 +173,7 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   Superclass::PrintSelf(os, indent);
 
   os << indent << "GreatestPrimeFactor: "  << m_GreatestPrimeFactor << std::endl;
+  os << indent << "PadMethod: "  << m_PadMethod << std::endl;
 }
 
 }// end namespace itk

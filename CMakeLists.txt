@@ -170,24 +170,24 @@ ADD_TEST(Ref ${TEST_COMMAND}
 ADD_TEST(FFTConv0 ${TEST_COMMAND}
    fftconv ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
    fftconv-0.png
-   0
+   1 0
    --compare fftconv-0.png ${CMAKE_CURRENT_SOURCE_DIR}/images/fftconv.png
 )
 ADD_TEST(FFTConv1 ${TEST_COMMAND}
    fftconv ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
    fftconv-1.png
-   1
+   1 1
    --compare fftconv-1.png ${CMAKE_CURRENT_SOURCE_DIR}/images/fftconv.png
 )
 ADD_TEST(FFTConv2 ${TEST_COMMAND}
    fftconv ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
    fftconv-2.png
-   2
+   1 2
    --compare fftconv-2.png ${CMAKE_CURRENT_SOURCE_DIR}/images/fftconv.png
 )
 ADD_TEST(FFTConv13 ${TEST_COMMAND}
    fftconv ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
    fftconv-13.png
-   13
+   1 13
    --compare fftconv-13.png ${CMAKE_CURRENT_SOURCE_DIR}/images/fftconv.png
 )

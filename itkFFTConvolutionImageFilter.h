@@ -130,6 +130,13 @@ public:
   itkGetConstMacro(GreatestPrimeFactor, int);
   itkSetMacro(GreatestPrimeFactor, int);
   
+  /**
+   * Set/Get the padding method.
+   */
+  typedef enum { NO_PADDING=0, ZERO_FLUX_NEUMANN=1, ZERO=2, MIRROR=3, WRAP=4 } PadMethod;
+  itkGetConstMacro(PadMethod, int);
+  itkSetMacro(PadMethod, int);
+  
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputHasPixelTraitsCheck,
@@ -157,6 +164,7 @@ private:
   void operator=(const Self&); //purposely not implemented
 
   int m_GreatestPrimeFactor;
+  int m_PadMethod;
 
 }; // end of class
 

@@ -121,6 +121,9 @@ public:
   itkGetConstMacro(GreatestPrimeFactor, int);
   itkSetMacro(GreatestPrimeFactor, int);
   
+  /**
+   * Set/Get the padding method.
+   */
   typedef enum { NO_PADDING=0, ZERO_FLUX_NEUMANN=1, ZERO=2, MIRROR=3, WRAP=4 } PadMethod;
   itkGetConstMacro(PadMethod, int);
   itkSetMacro(PadMethod, int);
