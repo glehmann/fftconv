@@ -9,13 +9,14 @@
 int main(int argc, char * argv[])
 {
 
-  if( argc != 6 )
+  if( argc != 7 )
     {
-    std::cerr << "usage: " << argv[0] << " intput inputkernel output outputkernel gpf" << std::endl;
+    std::cerr << "usage: " << argv[0] << " intput inputkernel output outputkernel method gpf" << std::endl;
     std::cerr << " input: the input image" << std::endl;
     std::cerr << " inputkernel: the input kernel image" << std::endl;
     std::cerr << " output: the padded output image" << std::endl;
     std::cerr << " outputkernel: the padded output kernel image" << std::endl;
+    std::cerr << " method: padding method - 1: zero flux, 2: zero, 3: mirror, 4: wrap" << std::endl;
     std::cerr << " gpf: greatest prime factor of the size of the padded image" << std::endl;
     // std::cerr << "  : " << std::endl;
     exit(1);
@@ -38,6 +39,11 @@ int main(int argc, char * argv[])
   filter->SetInput( reader->GetOutput() );
   filter->SetInput( 1, reader2->GetOutput() );
   
+  TEST_SET_GET_VALUE(FilterType::ZERO_FLUX_NEUMANN , filter->GetPadMethod() );
+  filter->SetPadMethod( atoi(argv[5]) );
+  TEST_SET_GET_VALUE( atoi(argv[5]), filter->GetPadMethod() );
+  
+  
   // test default value
   TEST_SET_GET_VALUE( 13, filter->GetGreatestPrimeFactor() );
   
@@ -48,8 +54,8 @@ int main(int argc, char * argv[])
   TEST_SET_GET_VALUE( 2, filter->GetGreatestPrimeFactor() );
   
   // ok, now use the user provided value
-  filter->SetGreatestPrimeFactor( atoi(argv[5]) );
-  TEST_SET_GET_VALUE( atoi(argv[5]), filter->GetGreatestPrimeFactor() );
+  filter->SetGreatestPrimeFactor( atoi(argv[6]) );
+  TEST_SET_GET_VALUE( atoi(argv[6]), filter->GetGreatestPrimeFactor() );
 
   itk::SimpleFilterWatcher watcher(filter, "filter");
 

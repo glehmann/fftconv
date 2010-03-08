@@ -121,6 +121,10 @@ public:
   itkGetConstMacro(GreatestPrimeFactor, int);
   itkSetMacro(GreatestPrimeFactor, int);
   
+  typedef enum { NO_PADDING=0, ZERO_FLUX_NEUMANN=1, ZERO=2, MIRROR=3, WRAP=4 } PadMethod;
+  itkGetConstMacro(PadMethod, int);
+  itkSetMacro(PadMethod, int);
+  
   /** Set the kernel image */
   void SetInputKernel(const InputKernelType *input)
     {
@@ -182,6 +186,7 @@ private:
   void operator=(const Self&); //purposely not implemented
 
   int m_GreatestPrimeFactor;
+  int m_PadMethod;
 
   bool isPrime( int n )
     {

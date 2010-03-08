@@ -22,6 +22,9 @@
 #include "itkNumericTraits.h"
 #include "itkMath.h"
 #include "itkConstantPadImageFilter.h"
+#include "itkZeroFluxNeumannPadImageFilter.h"
+#include "itkMirrorPadImageFilter.h"
+#include "itkWrapPadImageFilter.h"
 #include "itkChangeInformationImageFilter.h"
 
 namespace itk {
@@ -31,6 +34,7 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
 ::FFTZeroPaddingImageFilter()
 {
   m_GreatestPrimeFactor = 13;
+  m_PadMethod = ZERO_FLUX_NEUMANN;
   this->SetNumberOfRequiredInputs(2);
   this->SetNumberOfRequiredOutputs(2);
   this->SetNthOutput( 1, OutputImageType::New() );
@@ -84,29 +88,37 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
   RegionType region0 = input0->GetLargestPossibleRegion();
   RegionType region1 = input1->GetLargestPossibleRegion();
   
-  // increase the size of the output by twice the size of the kernel (there are 2 borders on each dim).
-  SizeType size;
-  IndexType idx;
-  for( int i=0; i<ImageDimension; i++ )
+  RegionType region;
+  if( m_PadMethod == NO_PADDING )
     {
-    size[i] = region0.GetSize()[i] + region1.GetSize()[i];
-    idx[i] = region0.GetIndex()[i] - region1.GetSize()[i] / 2;
-    if( m_GreatestPrimeFactor > 1 )
-      {
-      long s2 = size[i];
-      while( greatestPrimeFactor( s2 ) > m_GreatestPrimeFactor )
-        {
-        s2++;
-        }
-      idx[i] -= ( s2 - size[i] ) / 2;
-      size[i] = s2;
-      }
-    else if( m_GreatestPrimeFactor == 1 )
-      {
-      size[i] += size[i] % 2;
-      }
+    region = region0;
     }
-  RegionType region( idx, size );
+  else
+    {
+    // increase the size of the output by the size of the kernel
+    SizeType size;
+    IndexType idx;
+    for( int i=0; i<ImageDimension; i++ )
+      {
+      size[i] = region0.GetSize()[i] + region1.GetSize()[i];
+      idx[i] = region0.GetIndex()[i] - region1.GetSize()[i] / 2;
+      if( m_GreatestPrimeFactor > 1 )
+        {
+        long s2 = size[i];
+        while( greatestPrimeFactor( s2 ) > m_GreatestPrimeFactor )
+          {
+          s2++;
+          }
+        idx[i] -= ( s2 - size[i] ) / 2;
+        size[i] = s2;
+        }
+      else if( m_GreatestPrimeFactor == 1 )
+        {
+        size[i] += size[i] % 2;
+        }
+      }
+    region = RegionType( idx, size );
+    }
   output0->SetLargestPossibleRegion( region );
   output1->SetLargestPossibleRegion( region );
   // std::cout << region << std::endl;
@@ -132,22 +144,56 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
   ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
-  typedef typename itk::ConstantPadImageFilter< InputImageType, OutputImageType > PadType;
+  typedef typename itk::PadImageFilter< InputImageType, OutputImageType > PadType;
+  typedef typename itk::ConstantPadImageFilter< InputImageType, OutputImageType > ConstantPadType;
+  typedef typename itk::ZeroFluxNeumannPadImageFilter< InputImageType, OutputImageType > ZeroFluxPadType;
+  typedef typename itk::MirrorPadImageFilter< InputImageType, OutputImageType > MirrorPadType;
+  typedef typename itk::WrapPadImageFilter< InputImageType, OutputImageType > WrapPadType;
   SizeType s;
   
-  typename PadType::Pointer pad0 = PadType::New();
+  typename PadType::Pointer pad0;
+  switch( m_PadMethod )
+    {
+    case ZERO_FLUX_NEUMANN:
+      {
+      pad0 = ZeroFluxPadType::New();
+      break;
+      }
+    case NO_PADDING:
+    case ZERO:
+      {
+      pad0 = ConstantPadType::New();
+      break;
+      }
+    case MIRROR:
+      {
+      pad0 = MirrorPadType::New();
+      break;
+      }
+    case WRAP:
+      {
+      pad0 = WrapPadType::New();
+      break;
+    default:
+      itkExceptionMacro(<< "Unknown pad method: " << m_PadMethod);
+      break;
+      }
+    }
   pad0->SetInput( input0 );
   pad0->SetNumberOfThreads( this->GetNumberOfThreads() );
-  for( int i=0; i<ImageDimension; i++ )
+  if( m_PadMethod != NO_PADDING )
     {
-    s[i] = ir0.GetIndex()[1] - or0.GetIndex()[i];
+    for( int i=0; i<ImageDimension; i++ )
+      {
+      s[i] = ir0.GetIndex()[1] - or0.GetIndex()[i];
+      }
+    pad0->SetPadLowerBound( s );
+    for( int i=0; i<ImageDimension; i++ )
+      {
+      s[i] = or0.GetSize()[i] - ( ir0.GetIndex()[1] - or0.GetIndex()[i] + ir0.GetSize()[i]);
+      }
+    pad0->SetPadUpperBound( s );
     }
-  pad0->SetPadLowerBound( s );
-  for( int i=0; i<ImageDimension; i++ )
-    {
-    s[i] = or0.GetSize()[i] - ( ir0.GetIndex()[1] - or0.GetIndex()[i] + ir0.GetSize()[i]);
-    }
-  pad0->SetPadUpperBound( s );
   progress->RegisterInternalFilter( pad0, 0.5f );
   pad0->GraftOutput( output0 );
   pad0->Update();
@@ -191,6 +237,7 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
   Superclass::PrintSelf(os, indent);
 
   os << indent << "GreatestPrimeFactor: "  << m_GreatestPrimeFactor << std::endl;
+  os << indent << "PadMethod: "  << m_PadMethod << std::endl;
 }
   
 }// end namespace itk

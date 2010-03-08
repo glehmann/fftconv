@@ -106,23 +106,51 @@ ENDIF(BUILD_TESTING)
 ADD_TEST(ZeroPadding0 ${TEST_COMMAND}
    zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
    zero-image-0.png zero-kernel-0.png
-   0
+   2 0
    --compare zero-image-0.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-0.png
    --compare zero-kernel-0.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-0.png
 )
 ADD_TEST(ZeroPadding2 ${TEST_COMMAND}
    zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
    zero-image-2.png zero-kernel-2.png
-   2
+   2 2
    --compare zero-image-2.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-2.png
    --compare zero-kernel-2.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-2.png
 )
 ADD_TEST(ZeroPadding13 ${TEST_COMMAND}
    zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
    zero-image-13.png zero-kernel-13.png
-   13
+   2 13
    --compare zero-image-13.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-13.png
    --compare zero-kernel-13.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-13.png
+)
+ADD_TEST(ZeroPaddingZeroFluxNeumann ${TEST_COMMAND}
+   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   zero-image-zero-flux.png zero-kernel-zero-flux.png
+   1 2
+   --compare zero-image-zero-flux.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-zero-flux.png
+   --compare zero-kernel-zero-flux.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-2.png
+)
+ADD_TEST(ZeroPaddingMirror ${TEST_COMMAND}
+   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   zero-image-mirror.png zero-kernel-mirror.png
+   3 2
+   --compare zero-image-mirror.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-mirror.png
+   --compare zero-kernel-mirror.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-2.png
+)
+ADD_TEST(ZeroPaddingWrap ${TEST_COMMAND}
+   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   zero-image-wrap.png zero-kernel-wrap.png
+   4 2
+   --compare zero-image-wrap.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-wrap.png
+   --compare zero-kernel-wrap.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-2.png
+)
+ADD_TEST(ZeroPaddingNoPadding ${TEST_COMMAND}
+   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   zero-image-no-padding.png zero-kernel-no-padding.png
+   0 2
+   --compare zero-image-no-padding.png ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif
+   --compare zero-kernel-no-padding.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-no-padding.png
 )
 ADD_TEST(Norm ${TEST_COMMAND}
    norm ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
