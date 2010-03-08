@@ -137,6 +137,14 @@ public:
   itkGetConstMacro(PadMethod, int);
   itkSetMacro(PadMethod, int);
   
+  /**
+   * Set/Get whether the kernel should be normalized to one or not.
+   * Default is true.
+   */
+  itkGetConstMacro(Normalize, bool);
+  itkSetMacro(Normalize, bool);
+  itkBooleanMacro(Normalize);
+  
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro(InputHasPixelTraitsCheck,
@@ -163,8 +171,9 @@ private:
   FFTConvolutionImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  int m_GreatestPrimeFactor;
-  int m_PadMethod;
+  int  m_GreatestPrimeFactor;
+  int  m_PadMethod;
+  bool m_Normalize;
 
 }; // end of class
 

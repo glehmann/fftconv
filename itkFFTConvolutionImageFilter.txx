@@ -22,6 +22,7 @@
 #include "itkFlipImageFilter.h"
 #include "itkFFTPadImageFilter.h"
 #include "itkNormalizeToConstantImageFilter.h"
+#include "itkCastImageFilter.h"
 #include "itkFFTShiftImageFilter.h"
 #include "itkFFTRealToComplexConjugateImageFilter.h"
 #include "itkMultiplyImageFilter.h"
@@ -34,6 +35,7 @@ template <class TInputImage, class TKernelImage, class TOutputImage, class TFFTP
 FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision>
 ::FFTConvolutionImageFilter()
 {
+  m_Normalize = true;
   m_GreatestPrimeFactor = 13;
   m_PadMethod = ZERO_FLUX_NEUMANN;
   this->SetNumberOfRequiredInputs(2);
@@ -84,8 +86,18 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   flip->SetReleaseDataFlag( true );
   progress->RegisterInternalFilter( flip, 0.005f );
 
-  typedef itk::NormalizeToConstantImageFilter< KernelImageType, InternalImageType > NormType;
-  typename NormType::Pointer norm = NormType::New();
+  typedef itk::ImageToImageFilter< KernelImageType, InternalImageType > NormType;
+  typedef itk::NormalizeToConstantImageFilter< KernelImageType, InternalImageType > NormConstType;
+  typedef itk::CastImageFilter< KernelImageType, InternalImageType > CastType;
+  typename NormType::Pointer norm;
+  if( m_Normalize )
+    {
+    norm = NormConstType::New();
+    }
+  else
+    {
+    norm = CastType::New();
+    }
   norm->SetInput( flip->GetOutput() );
   norm->SetNumberOfThreads( this->GetNumberOfThreads() );
   norm->SetReleaseDataFlag( true );
@@ -172,6 +184,7 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
 {
   Superclass::PrintSelf(os, indent);
 
+  os << indent << "Normalize: "  << m_Normalize << std::endl;
   os << indent << "GreatestPrimeFactor: "  << m_GreatestPrimeFactor << std::endl;
   os << indent << "PadMethod: "  << m_PadMethod << std::endl;
 }
