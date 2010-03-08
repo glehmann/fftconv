@@ -25,15 +25,30 @@ namespace itk
 /** \class ZeroFluxNeumannPadImageFilter
  * \brief Increase the image size by padding with a constant value.
  *
- * ZeroFluxNeumannPadImageFilter changes the output image region.  If the output
- * image region is larger than the input image region, the extra pixels are
- * filled in by a constant value.  The output image region must be specified.
+ * A filter which extends the image size and fill the missing pixels
+ * according to a Neumann boundary condition where first,
+ * upwind derivatives on the boundary are zero.  This is a useful condition 
+ * in solving some classes of differential equations. 
  *
- * This filter is implemented as a multithreaded filter.  It provides a 
- * ThreadedGenerateData() method for its implementation.
+ * For example, invoking this filter on an image with a corner like:
+ * \code
+ *               * * * * * * * 
+ *               * * * * * * *
+ *               * * 1 2 3 4 5  (where * denotes pixels that lie 
+ *               * * 3 3 5 5 6          outside of the image boundary)
+ *               * * 4 4 6 7 8
+ * \endcode
+ * returns the following padded image:
+ * \code
+ *               1 1 1 2 3 4 5
+ *               1 1 1 2 3 4 5
+ *               1 1 1 2 3 4 5
+ *               3 3 3 3 5 5 6   (note the corner values)
+ *               4 4 4 4 6 7 8
+ * \endcode
  * 
  * \ingroup GeometricTransforms
- * \sa WrapPadImageFilter, MirrorPadImageFilter
+ * \sa WrapPadImageFilter, MirrorPadImageFilter, ConstantPadImageFilter, ZeroFluxNeumannBoundaryCondition
  */
 template <class TInputImage, class TOutputImage>
 class ITK_EXPORT ZeroFluxNeumannPadImageFilter:
