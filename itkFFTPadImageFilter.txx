@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkFFTZeroPaddingImageFilter.txx,v $
+  Module:    $RCSfile: itkFFTPadImageFilter.txx,v $
   Language:  C++
   Date:      $Date: 2007-01-20 20:05:58 $
   Version:   $Revision: 1.3 $
@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkFFTZeroPaddingImageFilter_txx
-#define __itkFFTZeroPaddingImageFilter_txx
+#ifndef __itkFFTPadImageFilter_txx
+#define __itkFFTPadImageFilter_txx
 
-#include "itkFFTZeroPaddingImageFilter.h"
+#include "itkFFTPadImageFilter.h"
 #include "itkProgressAccumulator.h"
 #include "itkNumericTraits.h"
 #include "itkMath.h"
@@ -30,8 +30,8 @@
 namespace itk {
 
 template <class TInputImage, class TInputKernel, class TOutputImage, class TKernelOutput>
-FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
-::FFTZeroPaddingImageFilter()
+FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
+::FFTPadImageFilter()
 {
   m_GreatestPrimeFactor = 13;
   m_PadMethod = ZERO_FLUX_NEUMANN;
@@ -42,7 +42,7 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
 
 template <class TInputImage, class TInputKernel, class TOutputImage, class TKernelOutput>
 void 
-FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
+FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
 ::GenerateInputRequestedRegion()
 {
   // call the superclass' implementation of this method
@@ -69,7 +69,7 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
 
 template <class TInputImage, class TInputKernel, class TOutputImage, class TKernelOutput>
 void 
-FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
+FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
 ::GenerateOutputInformation()
 {
   // call the superclass' implementation of this method
@@ -127,7 +127,7 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
 
 template<class TInputImage, class TInputKernel, class TOutputImage, class TKernelOutput>
 void
-FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
+FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
 ::GenerateData()
 {
   this->AllocateOutputs();
@@ -231,7 +231,7 @@ FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput
 
 template<class TInputImage, class TInputKernel, class TOutputImage, class TKernelOutput>
 void
-FFTZeroPaddingImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
+FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
 ::PrintSelf(std::ostream &os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);

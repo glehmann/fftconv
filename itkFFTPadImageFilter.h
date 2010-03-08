@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkFFTZeroPaddingImageFilter.h,v $
+  Module:    $RCSfile: itkFFTPadImageFilter.h,v $
   Language:  C++
   Date:      $Date: 2009-01-28 18:14:36 $
   Version:   $Revision: 1.7 $
@@ -14,15 +14,15 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkFFTZeroPaddingImageFilter_h
-#define __itkFFTZeroPaddingImageFilter_h
+#ifndef __itkFFTPadImageFilter_h
+#define __itkFFTPadImageFilter_h
 
 #include "itkImageToImageFilter.h"
 #include "itkConceptChecking.h"
 
 namespace itk {
 
-/** \class FFTZeroPaddingImageFilter
+/** \class FFTPadImageFilter
  * \brief Pad two images with zeros to make them suitable for a convolution in the
  * frequency domain.
  *
@@ -45,12 +45,12 @@ namespace itk {
  */
 template<class TInputImage, class TInputKernel=TInputImage,
          class TOutputImage=TInputImage, class TOutputKernel=TInputKernel>
-class ITK_EXPORT FFTZeroPaddingImageFilter : 
+class ITK_EXPORT FFTPadImageFilter : 
     public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef FFTZeroPaddingImageFilter Self;
+  typedef FFTPadImageFilter Self;
 
   typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
 
@@ -84,7 +84,7 @@ public:
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(FFTZeroPaddingImageFilter, ImageToImageFilter);
+  itkTypeMacro(FFTPadImageFilter, ImageToImageFilter);
 
   /**
    * Set/Get whether the images must be padded to a size equal to a power of two.
@@ -169,8 +169,8 @@ public:
 
 
 protected:
-  FFTZeroPaddingImageFilter();
-  ~FFTZeroPaddingImageFilter() {};
+  FFTPadImageFilter();
+  ~FFTPadImageFilter() {};
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   void GenerateInputRequestedRegion();
@@ -182,7 +182,7 @@ protected:
   
 
 private:
-  FFTZeroPaddingImageFilter(const Self&); //purposely not implemented
+  FFTPadImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   int m_GreatestPrimeFactor;
@@ -223,7 +223,7 @@ private:
 } // end namespace itk
   
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkFFTZeroPaddingImageFilter.txx"
+#include "itkFFTPadImageFilter.txx"
 #endif
 
 #endif

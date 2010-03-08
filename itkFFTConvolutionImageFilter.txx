@@ -20,7 +20,7 @@
 #include "itkFFTConvolutionImageFilter.h"
 #include "itkProgressAccumulator.h"
 #include "itkFlipImageFilter.h"
-#include "itkFFTZeroPaddingImageFilter.h"
+#include "itkFFTPadImageFilter.h"
 #include "itkNormalizeToConstantImageFilter.h"
 #include "itkFFTShiftImageFilter.h"
 #include "itkFFTRealToComplexConjugateImageFilter.h"
@@ -90,7 +90,7 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   norm->SetReleaseDataFlag( true );
   progress->RegisterInternalFilter( norm, 0.005f );
 
-  typedef itk::FFTZeroPaddingImageFilter< InputImageType, InternalImageType, InternalImageType, InternalImageType > PadType;
+  typedef itk::FFTPadImageFilter< InputImageType, InternalImageType, InternalImageType, InternalImageType > PadType;
   typename PadType::Pointer pad = PadType::New();
   pad->SetInput( input );
   pad->SetInputKernel( norm->GetOutput() );

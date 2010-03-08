@@ -73,7 +73,7 @@ SET(CurrentExe "ref")
 ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
-SET(CurrentExe "zero")
+SET(CurrentExe "pad")
 ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
@@ -103,54 +103,54 @@ ENDIF(BUILD_TESTING)
 #any tests you can comment out or delete the following line.
 # ADD_TEST(Testname ExecutableToRun arg1 arg2 arg3)
 
-ADD_TEST(ZeroPadding0 ${TEST_COMMAND}
-   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
-   zero-image-0.png zero-kernel-0.png
+ADD_TEST(FFTPad0 ${TEST_COMMAND}
+   pad ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   pad-image-0.png pad-kernel-0.png
    2 0
-   --compare zero-image-0.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-0.png
-   --compare zero-kernel-0.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-0.png
+   --compare pad-image-0.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-image-0.png
+   --compare pad-kernel-0.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-kernel-0.png
 )
-ADD_TEST(ZeroPadding2 ${TEST_COMMAND}
-   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
-   zero-image-2.png zero-kernel-2.png
+ADD_TEST(FFTPad2 ${TEST_COMMAND}
+   pad ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   pad-image-2.png pad-kernel-2.png
    2 2
-   --compare zero-image-2.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-2.png
-   --compare zero-kernel-2.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-2.png
+   --compare pad-image-2.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-image-2.png
+   --compare pad-kernel-2.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-kernel-2.png
 )
-ADD_TEST(ZeroPadding13 ${TEST_COMMAND}
-   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
-   zero-image-13.png zero-kernel-13.png
+ADD_TEST(FFTPad13 ${TEST_COMMAND}
+   pad ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   pad-image-13.png pad-kernel-13.png
    2 13
-   --compare zero-image-13.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-13.png
-   --compare zero-kernel-13.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-13.png
+   --compare pad-image-13.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-image-13.png
+   --compare pad-kernel-13.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-kernel-13.png
 )
-ADD_TEST(ZeroPaddingZeroFluxNeumann ${TEST_COMMAND}
-   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
-   zero-image-zero-flux.png zero-kernel-zero-flux.png
+ADD_TEST(FFTPadZeroFluxNeumann ${TEST_COMMAND}
+   pad ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   pad-image-zero-flux.png pad-kernel-zero-flux.png
    1 2
-   --compare zero-image-zero-flux.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-zero-flux.png
-   --compare zero-kernel-zero-flux.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-2.png
+   --compare pad-image-zero-flux.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-image-zero-flux.png
+   --compare pad-kernel-zero-flux.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-kernel-2.png
 )
-ADD_TEST(ZeroPaddingMirror ${TEST_COMMAND}
-   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
-   zero-image-mirror.png zero-kernel-mirror.png
+ADD_TEST(FFTPadMirror ${TEST_COMMAND}
+   pad ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   pad-image-mirror.png pad-kernel-mirror.png
    3 2
-   --compare zero-image-mirror.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-mirror.png
-   --compare zero-kernel-mirror.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-2.png
+   --compare pad-image-mirror.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-image-mirror.png
+   --compare pad-kernel-mirror.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-kernel-2.png
 )
-ADD_TEST(ZeroPaddingWrap ${TEST_COMMAND}
-   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
-   zero-image-wrap.png zero-kernel-wrap.png
+ADD_TEST(FFTPadWrap ${TEST_COMMAND}
+   pad ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   pad-image-wrap.png pad-kernel-wrap.png
    4 2
-   --compare zero-image-wrap.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-image-wrap.png
-   --compare zero-kernel-wrap.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-2.png
+   --compare pad-image-wrap.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-image-wrap.png
+   --compare pad-kernel-wrap.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-kernel-2.png
 )
-ADD_TEST(ZeroPaddingNoPadding ${TEST_COMMAND}
-   zero ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
-   zero-image-no-padding.png zero-kernel-no-padding.png
+ADD_TEST(FFTPadNoPadding ${TEST_COMMAND}
+   pad ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png
+   pad-image-no-padding.png pad-kernel-no-padding.png
    0 2
-   --compare zero-image-no-padding.png ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif
-   --compare zero-kernel-no-padding.png ${CMAKE_CURRENT_SOURCE_DIR}/images/zero-kernel-no-padding.png
+   --compare pad-image-no-padding.png ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.tif
+   --compare pad-kernel-no-padding.png ${CMAKE_CURRENT_SOURCE_DIR}/images/pad-kernel-no-padding.png
 )
 ADD_TEST(Norm ${TEST_COMMAND}
    norm ${CMAKE_CURRENT_SOURCE_DIR}/images/kernel.png

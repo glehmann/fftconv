@@ -2,7 +2,7 @@
 #include "itkImageFileWriter.h"
 #include "itkSimpleFilterWatcher.h"
 
-#include "itkFFTZeroPaddingImageFilter.h"
+#include "itkFFTPadImageFilter.h"
 #include "itkTestingMacros.h"
 
 
@@ -34,7 +34,7 @@ int main(int argc, char * argv[])
   ReaderType::Pointer reader2 = ReaderType::New();
   reader2->SetFileName( argv[2] );
 
-  typedef itk::FFTZeroPaddingImageFilter< IType, IType > FilterType;
+  typedef itk::FFTPadImageFilter< IType, IType > FilterType;
   FilterType::Pointer filter = FilterType::New();
   filter->SetInput( reader->GetOutput() );
   filter->SetInput( 1, reader2->GetOutput() );
