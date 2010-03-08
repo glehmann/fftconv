@@ -35,7 +35,7 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
 {
   m_GreatestPrimeFactor = 13;
   m_PadMethod = ZERO_FLUX_NEUMANN;
-  this->SetNumberOfRequiredInputs(2);
+//  this->SetNumberOfRequiredInputs(2);
   this->SetNumberOfRequiredOutputs(2);
   this->SetNthOutput( 1, OutputImageType::New() );
 }
@@ -50,7 +50,7 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
   
   InputImageType * input0 = const_cast<InputImageType *>(this->GetInput(0));
   InputImageType * input1 = const_cast<InputImageType *>(this->GetInput(1));
-  if ( !input0 || !input1 )
+  if ( !input0 )
     { 
     return;
     }
@@ -60,6 +60,12 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
   RegionType region = output->GetRequestedRegion();
   region.Crop( input0->GetLargestPossibleRegion() );
   input0->SetRequestedRegion( region );
+  
+  // input1 is not required
+  if ( !input1 )
+    { 
+    return;
+    }
   
   region = output->GetRequestedRegion();
   region.Crop( input1->GetLargestPossibleRegion() );
@@ -77,7 +83,7 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
   
   const InputImageType * input0 = this->GetInput();
   const InputKernelType * input1 = this->GetInputKernel();
-  if ( !input0 || !input1 )
+  if ( !input0 )
     { 
     return;
     }
@@ -86,7 +92,23 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
   OutputKernelType * output1 = this->GetOutputKernel();
   
   RegionType region0 = input0->GetLargestPossibleRegion();
-  RegionType region1 = input1->GetLargestPossibleRegion();
+  RegionType region1; // set later
+  
+  // dummy region to avoid code duplication when there is no input1
+  IndexType nullidx;
+  nullidx.Fill(0);
+  SizeType nullsize;
+  nullsize.Fill(0);
+  RegionType nullregion( nullidx, nullsize );
+    
+  if( input1 )
+    {
+    region1 = input1->GetLargestPossibleRegion();
+    }
+  else
+    {
+    region1 = nullregion;
+    }
   
   RegionType region;
   if( m_PadMethod == NO_PADDING )
@@ -120,7 +142,14 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
     region = RegionType( idx, size );
     }
   output0->SetLargestPossibleRegion( region );
-  output1->SetLargestPossibleRegion( region );
+  if( input1 )
+    {
+    output1->SetLargestPossibleRegion( region );
+    }
+  else
+    {
+    output1->SetLargestPossibleRegion( nullregion );
+    }
   // std::cout << region << std::endl;
 }
 
@@ -136,7 +165,7 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
   OutputImageType * output0 = this->GetOutput();
   OutputKernelType * output1 = this->GetOutputKernel();
   RegionType ir0 = input0->GetLargestPossibleRegion();
-  RegionType ir1 = input1->GetLargestPossibleRegion();
+  RegionType ir1;  // set later
   RegionType or0 = output0->GetLargestPossibleRegion();
   RegionType or1 = output1->GetLargestPossibleRegion();
 
@@ -199,33 +228,39 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
   pad0->Update();
   this->GraftOutput( pad0->GetOutput() );
 
-  typedef typename itk::ConstantPadImageFilter< InputKernelType, OutputKernelType > KernelPadType;
-  typename KernelPadType::Pointer pad1 = KernelPadType::New();
-  pad1->SetInput( input1 );
-  pad1->SetNumberOfThreads( this->GetNumberOfThreads() );
-  for( int i=0; i<ImageDimension; i++ )
+
+  if( input1 )
     {
-    s[i] = ( or1.GetSize()[i] - ir1.GetSize()[i] ) / 2;
-    }
-  pad1->SetPadUpperBound( s );
-  for( int i=0; i<ImageDimension; i++ )
-    {
-    s[i] = itk::Math::Ceil(( or1.GetSize()[i] - ir1.GetSize()[i] ) / 2.0 );
-    }
-  pad1->SetPadLowerBound( s );
-  progress->RegisterInternalFilter( pad1, 0.5f );
+    ir1 = input1->GetLargestPossibleRegion();
   
-  typedef typename itk::ChangeInformationImageFilter< OutputKernelType > ChangeType;
-  typename ChangeType::Pointer change = ChangeType::New();
-  change->SetInput( pad1->GetOutput() );
-  change->SetUseReferenceImage( true );
-  change->SetReferenceImage( output1 );
-  change->SetChangeRegion( true );
-  // no progress for change - it does almost nothing
-  
-  change->GraftOutput( output1 );
-  change->Update();
-  this->GraftNthOutput( 1, change->GetOutput() );
+    typedef typename itk::ConstantPadImageFilter< InputKernelType, OutputKernelType > KernelPadType;
+    typename KernelPadType::Pointer pad1 = KernelPadType::New();
+    pad1->SetInput( input1 );
+    pad1->SetNumberOfThreads( this->GetNumberOfThreads() );
+    for( int i=0; i<ImageDimension; i++ )
+      {
+      s[i] = ( or1.GetSize()[i] - ir1.GetSize()[i] ) / 2;
+      }
+    pad1->SetPadUpperBound( s );
+    for( int i=0; i<ImageDimension; i++ )
+      {
+      s[i] = itk::Math::Ceil(( or1.GetSize()[i] - ir1.GetSize()[i] ) / 2.0 );
+      }
+    pad1->SetPadLowerBound( s );
+    progress->RegisterInternalFilter( pad1, 0.5f );
+    
+    typedef typename itk::ChangeInformationImageFilter< OutputKernelType > ChangeType;
+    typename ChangeType::Pointer change = ChangeType::New();
+    change->SetInput( pad1->GetOutput() );
+    change->SetUseReferenceImage( true );
+    change->SetReferenceImage( output1 );
+    change->SetChangeRegion( true );
+    // no progress for change - it does almost nothing
+    
+    change->GraftOutput( output1 );
+    change->Update();
+    this->GraftNthOutput( 1, change->GetOutput() );
+    }
 }
 
 
