@@ -26,7 +26,7 @@ KernelImage->NormalizeToConstantImageFilter->FFTPadImageFilter->FlipImageFilter-
 /* KernelImage->CastImageFilter->FFTPadImageFilter[color=orange] */
 
 MultiplyImageFilter->FFTComplexConjugateToRealImageFilter->RegionFromReferenceImageFilter->ConvolvedImage[color=red]
-
+InputImage->RegionFromReferenceImageFilter[color=green, constraint=false]
 
 
 }
