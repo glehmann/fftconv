@@ -3,7 +3,7 @@
 %
 
 \NeedsTeXFormat{LaTeX2e}[1995/12/01]
-\ProvidesPackage{Insight}
+\ProvidesPackage{InsightJournal}
              [1998/01/11 LaTeX package (Insight markup)]
 
 \RequirePackage{longtable}
@@ -14,6 +14,7 @@
 \RequirePackage{amsmath}
 \RequirePackage{pslatex}
 \RequirePackage{verbatim}
+
 
 % Uncomment these two lines to ignore the paper size and make the page 
 % size more like a typical published manual.
@@ -1105,14 +1106,18 @@
 
 
 %
-% Commands for including Graphics
+%  Commands for adding the link reference to the URL in the Insight Journal
 %
-\DeclareGraphicsExtensions{.eps,.jpg,.gif,.tiff,.bmp,.png}
-\DeclareGraphicsRule{.jpg}{eps}{.jpg.bb}{`convert #1 eps:-}
-\DeclareGraphicsRule{.gif}{eps}{.gif.bb}{`convert #1 eps:-}
-\DeclareGraphicsRule{.tiff}{eps}{.tiff.bb}{`convert #1 eps:-}
-\DeclareGraphicsRule{.bmp}{eps}{.bmp.bb}{`convert #1 eps:-}
-\DeclareGraphicsRule{.png}{eps}{.png.bb}{`convert #1 eps:-}
+\newcommand{\urlhandle}[1]{
+\url{http://hdl.handle.net/10380/#1}}  
 
+\newcommand{\IJhandle}[1]{
+Latest version available at the \href{http://www.insight-journal.org}{Insight Journal} [\urlhandle{#1}]\\
+Distributed under \href{http://creativecommons.org/licenses/by/3.0/us/}{Creative Commons Attribution License}}
 
+\newcommand{\IJhandlefooter}[1]{
+\fancyfoot[CO,CE]{
+  \IJhandle{#1} }}
 
+\newcommand{\IJhandlenote}[1]{
+  \fbox{ \parbox[t][1.5cm][t]{\textwidth}{\center{\IJhandle{#1}}} }}
