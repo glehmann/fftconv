@@ -89,9 +89,9 @@ kernel images.
 
 The FFT based convolution requires several step to be performed. They are detailed one by one.
 
-\subsection{Zero padding}
+\subsection{Padding}
 
-The images will be padded with zeros for several reasons:
+The image to convolve and the kernel will be padded with for several reasons:
 \begin{itemize}
   \item to make their size match. This is required to perform the multiplication in the frequency
   domain.
@@ -106,6 +106,31 @@ The images will be padded with zeros for several reasons:
   a lot better, as shown in chapter \ref{perf:gpf}.
 \end{itemize}
 
+The kernel is always padded with zeros, but the image to convolve can be padded in several ways:
+\begin{itemize}
+ \item zeros -- while simple, this method may show darkened border in the convolved image;
+ \item zero flux Neumann -- this method extends the pixels on the image border in the padded zone, and
+       is quite efficient in keeping the border effect low;
+ \item mirror -- the image is padded with a mirror of the image. This is also a quite good way to
+       keep the border effect low;
+ \item wrap -- the opposite border of the image is copied in the padded zone. This may be useful to
+       keep the circular behavior of the FFT, while still padding to fit the size requirement of the
+       FFT implementation.
+\end{itemize}
+The result of those padding can be seen in figure \ref{fig:padding}.
+
+\begin{figure}[htbp]
+\begin{center}
+\subfigure[Zero]{\includegraphics[scale=0.4]{pad-image-2}}
+\subfigure[Zero flux Neumann]{\includegraphics[scale=0.4]{pad-image-zero-flux}}
+\subfigure[Mirror]{\includegraphics[scale=0.4]{pad-image-mirror}}
+\subfigure[Wrap]{\includegraphics[scale=0.4]{pad-image-wrap}}
+\subfigure[Input image]{\includegraphics[scale=0.4]{cthead1}}
+\caption{Padding a 256 $\times$ 256 image to a 512 $\times$ 512 one in several ways.\label{fig:padding}}
+\end{center}
+\end{figure}
+
+
 \subsection{Normalization}
 
 To preserve the intensity of the pixel in the convolved image, the kernel must be normalized to one
@@ -115,7 +140,18 @@ To preserve the intensity of the pixel in the convolved image, the kernel must b
 
 The convolution is a flipping transform by nature: the shape of the kernel image can be found in the
 convolved image, but flipped on all the axes. To get the same behavior when computing the product
-in the frequency domain, the kernel image must be flipped prior to the FFT.
+in the frequency domain, the kernel image must be flipped prior to the FFT. See figure \ref{fig:kernel-modifications}.
+
+\begin{figure}[htbp]
+\begin{center}
+\subfigure[Input image (scaled 20 times)]{\includegraphics[scale=8]{kernel}}
+\subfigure[Zero padded]{\includegraphics[scale=0.4]{pad-kernel-2}}
+\subfigure[Zero padded and flipped]{\includegraphics[scale=0.4]{kernel-pad-flip}}
+\subfigure[Zero padded, flipped and shifted]{\includegraphics[scale=0.4]{kernel-pad-flip-shift}}
+\caption{Kernel modifications in order to perform the FFT based convolution. Normalization is
+only a change in intensity, and thus is not shown here.\label{fig:kernel-modifications}}
+\end{center}
+\end{figure}
 
 \subsection{Shifting (centering)}
 
@@ -123,7 +159,7 @@ The convolution is usually done with a centered kernel. If the kernel is not cen
 is shifted in the convolved image, by the same shift than the shift of the kernel. However, for the
 FFT, the center pixel is the one in the corner, not the one in the center of the image, as is it 
 usual for a human. To avoid a shift in the convolved image, the pixels must be shifted to the corner
-of the image as expeced by the FFT.
+of the image as expeced by the FFT. See figure \ref{fig:kernel-modifications}.
 
 This shift must be done after the padding, and before the FFT.
 
@@ -142,12 +178,21 @@ the image and of the FFT on the kernel pixel wise.
 \subsection{Inverse Fourier transform}
 
 The convolved image in the frequency domain is transformed to the space domain with an inverse Fourier
-transform.
+transform. See figure \ref{fig:image-modifications}.
+
+\begin{figure}[htbp]
+\begin{center}
+\subfigure[Input image]{\includegraphics[scale=0.4]{cthead1}}
+\subfigure[Zero flux Neumann padded]{\includegraphics[scale=0.4]{pad-image-zero-flux}}
+\subfigure[Convolved, still padded]{\includegraphics[scale=0.4]{image-pad-convolved}}
+\subfigure[Cropped to the input image size]{\includegraphics[scale=0.4]{fftconv}}
+\caption{The modifications applied to the input image.\label{fig:image-modifications}}
+\end{center}
+\end{figure}
 
 \subsection{Cropping}
 
-The image is cropped to fit the size of the input image.
-
+The image is cropped to fit the size of the input image. See figure \ref{fig:image-modifications}.
 
 \section{Implementation}
 
@@ -169,21 +214,29 @@ The use of itk::StatisticsImageFilter only to compute the sum might be {\em a li
 is only used on the kernel, which is usually quite small, so the performance impact on the whole
 FFT based convolution is small.
 
-\subsection{FFTZeroPaddingImageFilter}
+\subsection{ZeroFluxNeumannPadImageFilter}
+
+The zero flux Neumann padding filter was not implemented in ITK. It has been implemented by modifying
+the \verb$ConstantPadImageFilter$ code.
+
+\subsection{FFTPadImageFilter}
 
 The padding step, as described in the previous chapter, has several goals, which lead to a single
 image size used to pad both the input image and the kernel.
-All the logic is implemented in itk::FFTZeroPaddingImageFilter.
+All the logic is implemented in \verb$itk::FFTPadImageFilter$.
 
 This filter is in charge of padding both images. It requires two input -- the image to convolve and
 the kernel. The pad size is computed according to both image sizes.
 
-The image to convolve is simply padded with zeros. The kernel, however, requires a little more work to be
-centered in the padded image, and to make its region match the one of the padded image to convolve.
-The padding and the region changes are implemented as a minipipeline of itk::ConstantPadImageFilter and
-itk::ChangeInformationImageFilter.
+The image to convolve is simply padded with one of the available method: zeros, zero flux Neumann, mirror
+or wrap.
 
-itk::FFTZeroPaddingImageFilter is also able to extend the padded region in order to enhance the FFT
+The kernel, however, requires a little more work to be
+centered in the padded image, and to make its region match the one of the padded image to convolve.
+The padding and the region changes are implemented as a minipipeline of \verb$itk::ConstantPadImageFilter$ and
+\verb$itk::ChangeInformationImageFilter$.
+
+\verb$itk::FFTPadImageFilter$ is also able to extend the padded region in order to enhance the FFT
 performance, or to make it possible when the FFT possible when it require a size which is a power of
 two. FFTW is able to work on any image size, but due to the algorithms useds, produce significantly
 more performant result with some specific sizes. The two main reasons are:
@@ -195,8 +248,6 @@ more performant result with some specific sizes. The two main reasons are:
 For these reasons, FFTW performs better when the size on each dimension has its greatest prime
 factor smaller or equal to thirteen.
 The greatest prime factor can be simply computed with the algorithm described in algorithm \ref{greatestPrimeFactor}.
-
-
 
 \begin{pseudocode}{isPrime}{n}
 \FOREACH x \in [2, \sqrt{n}] \DO 
@@ -219,6 +270,10 @@ x \GETS 2 \\
 \END \\
 \RETURN x
 \end{pseudocode}
+
+\verb$FFTPadImageFilter$ can also be used with a single input. This is useful to be able to run a FFT
+on an image with a size which is not a power of 2 with the vnl implementation, or to enhance the performance
+of the FFTW implementation, without necessairly doing a convolution.
 
 \subsection{FFTW filters enhancements}
 
@@ -298,6 +353,17 @@ Also, the check for the size of the image to know if the plan can be reused may 
 enough, because it was testing only the number of pixels and not the size on all the dimensions. 
 The plan is not kept between the execution, so this can not be a problem anymore.
 
+\subsubsection{Still to be done}
+
+There are still some missing features in the FFTW filters. The ones which comes to mind are:
+\begin{itemize}
+ \item let the user create a plan with \verb$FFTW_PATIENT$, \verb$FFTW_MEASURE$, or
+\verb$FFTW_EXHAUSTIVE$, so that FFTW can create better plan with \verb$FFTW_ESTIMATE$ in a
+later run;
+ \item provide an API to save the FFTW wisdoms.
+\end{itemize}
+
+
 \subsection{RegionFromReferenceImageFilter}
 
 At the end of the convolution, the image is cropped to return to the size of the input image. Again
@@ -313,12 +379,24 @@ need to be specified in the template parameters.
 \subsection{FFTConvolutionImageFilter}
 
 \verb$itk::FFTConvolutionImageFilter$ is a convenient minipipeline filter which groups all the required
-filters to make the FFT based convolution in a single and easy to use filter.
+filters to make the FFT based convolution in a single and easy to use filter. See figure \ref{fig:conv-pipeline}
+for an overview of the minipipeline.
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.5]{conv}
+\caption{Internal pipeline of FFTConvolutionImageFilter.\label{fig:conv-pipeline}}
+\end{figure}
+
 It sets the \verb$ReleaseDataFlag$ properly to keep the memory usage as low as possible, and propagate the
 user specified number of threads.
 
-It also expose the \verb$GreatestPrimeFactor$ accessors from \verb$itk::FFTZeroPaddingImageFilter$ to let
-the user choose between the extra performance added by the padding and the extra memory cost.
+It also expose the \verb$GreatestPrimeFactor$ accessors from \verb$itk::FFTPadImageFilter$ to let
+the user choose between the extra performance added by the padding and the extra memory cost, and
+\verb$PadMethod$ from the same filter to let the user choose the padding method -- zero flux Neumann
+is used by default.
+
+Finally, the \verb$Normalize$ attribute let the user choose if the kernel must be normalized to one
+or not.
 
 \section{Performance}
 
@@ -326,34 +404,38 @@ the user choose between the extra performance added by the padding and the extra
 
 \subsection{Greatest prime factor}
 \label{perf:gpf}
+As visible in figure \ref{fig:perf-fftw3}, the FFTW library performs quite differently depending on the
+size of the input. A good way to get the best performance seems to be to use the sizes with the greatest
+prime factor smaller or equal to 13.
+
+Most of the time, and despite the usual advice to use a size which is a power of two,
+those sizes perform significantly better than the closest sizes which are a power of two, probably
+because of the smaller impact of the number of pixels in the image.
+
+\begin{figure}[htbp]
+\begin{center}
+\subfigure[Execution time for an image of size $dim^{3}$.]{\includegraphics[scale=0.7]{fftw3-time-dim}}
+\subfigure[Effect of the image greatest prime factor of the image size (gpf) on the number of pixels
+ processed per seconds (ops).]{\includegraphics[scale=0.7]{fftw3-ops-gpf}}
+\caption{Effect of the image size on the FFTW performance. Red dots are the sizes with a greatest prime
+factor smaller or equal to 13. The grey dots are the ones with a greatest prime factor greater than 13.
+\label{fig:perf-fftw3}}
+\end{center}
+\end{figure}
 
 \subsection{Number of threads}
 
+\section{Conclusion}
 
-% \url{http://www.itk.org}
-% \code{Insight/Documentation/Style.pdf}
-% \section{Principles of Solar Spot Detection}
-% \cite{ITKSoftwareGuide}.
-% \doxygen{ImageToImageFilter}
+This contribution provides with an efficient implementation of the convolution transform for large kernels.
+The FFTW filters implementations has been significantly enhanced, and a set of reusable tools is provided.
 
-% \small \begin{verbatim}
-% \end{verbatim} \normalsize
-
-
-% The {itemize} environment uses a bullet for each \item.  If you want the 
-% \item's numbered, use the {enumerate} environment instead.
-% \begin{itemize}
-%   \item  Insight Toolkit 2.4.
-%   \item  CMake 2.2
-% \end{itemize}
-
-% \ref{cthead1}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics{cthead1}
-\caption{The input image.\label{cthead1}}
-\end{figure}
+Some other work may be done on this basis -- an non exhaustive list may be:
+\begin{itemize}
+ \item a binary erosion/dilation based on FFT;
+ \item a set of deconvolution filters;
+ \item a more memory efficient implementation of the convolution filter using the Overlap-Save algorithm.
+\end{itemize}
 
 
 \appendix
