@@ -19,8 +19,9 @@ EPSS=$(notdir $(wildcard ../images/*.eps))
 TIFS=$(notdir $(wildcard ../images/*.tif))
 PLOTS=$(notdir $(wildcard ../images/*.gnuplot))
 DOTS=$(notdir $(wildcard ../images/*.dot))
+PDFS=$(notdir $(wildcard ../images/*.pdf))
 
-OUTPUT_EPS=$(PNGS:png=eps) $(JPGS:jpg=eps) $(DIAS:dia=eps) $(FIGS:fig=eps) $(TIFS:tif=eps) $(PLOTS:gnuplot=eps) $(DOTS:dot=eps) $(EPSS)
+OUTPUT_EPS=$(PNGS:png=eps) $(JPGS:jpg=eps) $(DIAS:dia=eps) $(FIGS:fig=eps) $(TIFS:tif=eps) $(PLOTS:gnuplot=eps) $(DOTS:dot=eps) $(PDFS:pdf=eps) $(EPSS)
 
 all: pdf
 
@@ -49,6 +50,9 @@ eps: $(OUTPUT_EPS)
 
 %.eps: ../images/%.dot
 	dot -Teps $< > $@
+
+%.eps: ../images/%.pdf
+	pdf2ps $< $@
 
 
 ${NAME}.ps: ${NAME}.dvi
