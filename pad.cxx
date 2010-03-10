@@ -4,12 +4,13 @@
 
 #include "itkFFTPadImageFilter.h"
 #include "itkTestingMacros.h"
+#include "itkRegionFromReferenceImageFilter.h"
 
 
 int main(int argc, char * argv[])
 {
 
-  if( argc != 7 )
+  if( argc < 7 )
     {
     std::cerr << "usage: " << argv[0] << " intput inputkernel output outputkernel method gpf" << std::endl;
     std::cerr << " input: the input image" << std::endl;
@@ -69,6 +70,19 @@ int main(int argc, char * argv[])
   writer2->SetInput( filter->GetOutput(1) );
   writer2->SetFileName( argv[4] );
   writer2->Update();
+  
+  if( argc >= 8 )
+    {
+    typedef itk::RegionFromReferenceImageFilter< IType, IType > RegionType;
+    RegionType::Pointer region = RegionType::New();
+    region->SetInput( filter->GetOutput() );
+    region->SetReferenceImage( reader->GetOutput() );
+  
+    WriterType::Pointer writer3 = WriterType::New();
+    writer3->SetInput( region->GetOutput() );
+    writer3->SetFileName( argv[7] );
+    writer3->Update();
+    }
 
   return 0;
 }
