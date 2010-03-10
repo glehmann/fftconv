@@ -20,7 +20,6 @@
 #include "itkFFTPadImageFilter.h"
 #include "itkProgressAccumulator.h"
 #include "itkNumericTraits.h"
-#include "itkMath.h"
 #include "itkConstantPadImageFilter.h"
 #include "itkZeroFluxNeumannPadImageFilter.h"
 #include "itkMirrorPadImageFilter.h"
