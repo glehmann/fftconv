@@ -137,6 +137,7 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   typedef itk::FFTShiftImageFilter< InternalImageType, InternalImageType > ShiftType;
   typename ShiftType::Pointer shift = ShiftType::New();
   shift->SetInput( pad->GetOutputKernel() );
+  shift->SetInverse( true );
   shift->SetNumberOfThreads( this->GetNumberOfThreads() );
   shift->SetReleaseDataFlag( true );
   progress->RegisterInternalFilter( shift, 0.04f );
