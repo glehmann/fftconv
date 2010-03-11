@@ -162,6 +162,11 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TFFTPrecision
   typedef itk::FFTComplexConjugateToRealImageFilter< FFTPrecisionType, ImageDimension > IFFTType;
   typename IFFTType::Pointer ifft = IFFTType::New();
   ifft->SetInput( mult->GetOutput() );
+  // we can't run a single update here: we have to set the
+  // ActualXDimensionIsOdd attribute, which can be done only after the update of
+  // output information of the pad filter
+  pad->UpdateOutputInformation();
+  ifft->SetActualXDimensionIsOdd( pad->GetOutput()->GetLargestPossibleRegion().GetSize()[0] % 2 );
   ifft->SetNumberOfThreads( this->GetNumberOfThreads() );
   ifft->SetReleaseDataFlag( true );
   progress->RegisterInternalFilter( ifft, 0.25f );
