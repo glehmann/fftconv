@@ -121,22 +121,21 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
     IndexType idx;
     for( int i=0; i<ImageDimension; i++ )
       {
-      size[i] = region0.GetSize()[i] + region1.GetSize()[i];
-      idx[i] = region0.GetIndex()[i] - region1.GetSize()[i] / 2;
+      long s1 = std::max( (long)region1.GetSize()[i] - 1, (long)0 );
       if( m_GreatestPrimeFactor > 1 )
         {
-        long s2 = size[i];
-        while( greatestPrimeFactor( s2 ) > m_GreatestPrimeFactor )
+        while( greatestPrimeFactor( region0.GetSize()[i] + s1 ) > m_GreatestPrimeFactor )
           {
-          s2++;
+          s1++;
           }
-        idx[i] -= ( s2 - size[i] ) / 2;
-        size[i] = s2;
         }
       else if( m_GreatestPrimeFactor == 1 )
         {
-        size[i] += size[i] % 2;
+        // make sure the total size is even
+        s1 += ( region0.GetSize()[i] + s1 ) % 2;
         }
+      idx[i] = region0.GetIndex()[i] - s1/2;
+      size[i] = region0.GetSize()[i] + s1;
       }
     region = RegionType( idx, size );
     }
