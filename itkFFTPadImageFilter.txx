@@ -242,7 +242,9 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
     pad1->SetPadUpperBound( s );
     for( int i=0; i<ImageDimension; i++ )
       {
-      s[i] = itk::Math::Ceil(( or1.GetSize()[i] - ir1.GetSize()[i] ) / 2.0 );
+      // s[i] = itk::Math::Ceil(( or1.GetSize()[i] - ir1.GetSize()[i] ) / 2.0 );
+      // this line should do the same, but without requirement on ITK cvs
+      s[i] = ( or1.GetSize()[i] - ir1.GetSize()[i] ) / 2 +  ( or1.GetSize()[i] - ir1.GetSize()[i] ) % 2;
       }
     pad1->SetPadLowerBound( s );
     progress->RegisterInternalFilter( pad1, 0.5f );

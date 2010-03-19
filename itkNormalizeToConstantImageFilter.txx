@@ -20,7 +20,6 @@
 #include "itkNormalizeToConstantImageFilter.h"
 #include "itkProgressAccumulator.h"
 #include "itkNumericTraits.h"
-#include "itkMath.h"
 #include "itkStatisticsImageFilter.h"
 #include "itkDivideByConstantImageFilter.h"
 
