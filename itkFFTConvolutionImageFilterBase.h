@@ -62,6 +62,7 @@ public:
   /** Some convenient typedefs. */
   typedef TInputImage                              InputImageType;
   typedef TKernelImage                             KernelImageType;
+  typedef KernelImageType                          PointSpreadFunctionType;
   typedef TOutputImage                             OutputImageType;
   typedef TInternalPrecision                       InternalPrecisionType;
   typedef typename InputImageType::Pointer         InputImagePointer;
@@ -124,6 +125,20 @@ public:
   void SetInput2(const TKernelImage *input)
     {
     this->SetKernelImage( input );
+    }
+
+   /** Set the kernel image */
+  void SetPointSpreadFunction(const PointSpreadFunctionType *input)
+    {
+    // Process object is not const-correct so the const casting is required.
+    this->SetNthInput( 1, const_cast<PointSpreadFunctionType *>(input) );
+    }
+
+  /** Get the kernel image */
+  const PointSpreadFunctionType * GetPointSpreadFunction() const
+    {
+    return static_cast<PointSpreadFunctionType*>(
+      const_cast<DataObject *>(this->ProcessObject::GetInput(1)));
     }
 
   /**

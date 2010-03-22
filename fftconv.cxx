@@ -39,7 +39,22 @@ int main(int argc, char * argv[])
   typedef itk::FFTConvolutionImageFilter< IType > FFTConvolutionType;
   FFTConvolutionType::Pointer conv = FFTConvolutionType::New();
   conv->SetInput( reader->GetOutput() );
+  TEST_SET_GET_VALUE( reader->GetOutput(), conv->GetInput() );
   conv->SetKernelImage( reader2->GetOutput() );
+  TEST_SET_GET_VALUE( reader2->GetOutput(), conv->GetInput( 1 ) );
+  TEST_SET_GET_VALUE( reader2->GetOutput(), conv->GetKernelImage() );
+  TEST_SET_GET_VALUE( reader2->GetOutput(), conv->GetPointSpreadFunction() );
+
+  // to exercise the methods
+  conv->SetInput( NULL );
+  conv->SetInput1( reader->GetOutput() );
+  TEST_SET_GET_VALUE( reader->GetOutput(), conv->GetInput() );
+  conv->SetKernelImage( NULL );
+  conv->SetInput2( reader2->GetOutput() );
+  TEST_SET_GET_VALUE( reader2->GetOutput(), conv->GetInput( 1 ) );
+  TEST_SET_GET_VALUE( reader2->GetOutput(), conv->GetKernelImage() );
+  TEST_SET_GET_VALUE( reader2->GetOutput(), conv->GetPointSpreadFunction() );
+
   // test default value
   TEST_SET_GET_VALUE( 13, conv->GetGreatestPrimeFactor() );
   TEST_SET_GET_VALUE( FFTConvolutionType::ZERO_FLUX_NEUMANN, conv->GetPadMethod() );
