@@ -43,7 +43,7 @@ namespace itk {
  *
  * \sa FFTShiftImageFilter NormalizeToConstantImageFilter FFTRealToComplexConjugateImageFilter
  */
-template<class TInputImage, class TKernelImage=TInputImage, class TOutputImage=TInputImage, class TFFTPrecision=float>
+template<class TInputImage, class TKernelImage=TInputImage, class TOutputImage=TInputImage, class TInternalPrecision=float>
 class ITK_EXPORT FFTConvolutionImageFilter : 
     public ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -60,7 +60,7 @@ public:
   typedef TInputImage                              InputImageType;
   typedef TKernelImage                             KernelImageType;
   typedef TOutputImage                             OutputImageType;
-  typedef TFFTPrecision                            FFTPrecisionType;
+  typedef TInternalPrecision                            InternalPrecisionType;
   typedef typename InputImageType::Pointer         InputImagePointer;
   typedef typename InputImageType::ConstPointer    InputImageConstPointer;
   typedef typename InputImageType::PixelType       InputImagePixelType;
