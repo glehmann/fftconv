@@ -188,13 +188,17 @@ protected:
 
   void GenerateInputRequestedRegion();
   
-  void Init( InternalImagePointerType & paddedInput, InternalImagePointerType & paddedKernel, bool & xIsOdd, float progressWeight=0.66 );
-  void Init( ComplexImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, bool & xIsOdd, float progressWeight=0.66 );
-  void Init( InternalImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, bool & xIsOdd, float progressWeight=0.66 );
+  void Init( InternalImagePointerType & paddedInput, InternalImagePointerType & paddedKernel, float progressWeight=0.66 );
+  void Init( ComplexImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight=0.66 );
+  void Init( InternalImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight=0.66 );
   
   void RegisterInternalFilter( ProcessObject * filter, float progressWeight );
   
-  void End( ComplexImageType * paddedOutput, bool xIsOdd, float progressWeight=0.34 );
+  itkGetConstMacro(XIsOdd, bool);
+  itkSetMacro(XIsOdd, bool);
+  itkBooleanMacro(XIsOdd);
+  
+  void End( ComplexImageType * paddedOutput, float progressWeight=0.34 );
   void End( InternalImageType * paddedOutput, float progressWeight=0.34 );
 
   void PrintSelf(std::ostream& os, Indent indent) const;
@@ -207,6 +211,7 @@ private:
   int                          m_PadMethod;
   bool                         m_Normalize;
   ProgressAccumulator::Pointer m_ProgressAccumulator;
+  bool                         m_XIsOdd;
 
 }; // end of class
 

@@ -30,9 +30,8 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TInternalPrec
 {
   ComplexImagePointerType input;
   ComplexImagePointerType kernel;
-  bool xIsOdd;
   
-  this->Init( input, kernel, xIsOdd, 0.6f );
+  this->Init( input, kernel, 0.6f );
 
   typedef itk::MultiplyImageFilter< ComplexImageType,
                                     ComplexImageType,
@@ -45,7 +44,7 @@ FFTConvolutionImageFilter<TInputImage, TKernelImage, TOutputImage, TInternalPrec
   mult->SetInPlace( true );
   this->RegisterInternalFilter( mult, 0.1f );
 
-  this->End( mult->GetOutput(), xIsOdd, 0.3f );
+  this->End( mult->GetOutput(), 0.3f );
 }
 
 }// end namespace itk

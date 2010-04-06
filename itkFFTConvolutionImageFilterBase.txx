@@ -38,6 +38,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
   m_Normalize = true;
   m_GreatestPrimeFactor = 13;
   m_PadMethod = ZERO_FLUX_NEUMANN;
+  m_XIsOdd = false;
   this->SetNumberOfRequiredInputs(2);
 }
 
@@ -63,7 +64,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
 template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
 void
 FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
-::Init( InternalImagePointerType & paddedInput, InternalImagePointerType & paddedKernel, bool & xIsOdd, float progressWeight )
+::Init( InternalImagePointerType & paddedInput, InternalImagePointerType & paddedKernel, float progressWeight )
 {
   const InputImageType * input = this->GetInput();
   const KernelImageType * kernel = this->GetKernelImage();
@@ -139,18 +140,18 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
   paddedInput->DisconnectPipeline();
   paddedKernel = pad->GetOutputKernel();
   paddedKernel->DisconnectPipeline();
-  xIsOdd = paddedInput->GetLargestPossibleRegion().GetSize()[0] % 2;
+  m_XIsOdd = paddedInput->GetLargestPossibleRegion().GetSize()[0] % 2;
 }
 
 
 template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
 void
 FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
-::Init( InternalImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, bool & xIsOdd, float progressWeight )
+::Init( InternalImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight )
 {
   InternalImagePointerType pk;
   
-  this->Init( paddedInput, pk, xIsOdd, 0.15 * progressWeight );
+  this->Init( paddedInput, pk, 0.15 * progressWeight );
 
   typedef itk::FFTShiftImageFilter< InternalImageType, InternalImageType > ShiftType;
   typename ShiftType::Pointer shift = ShiftType::New();
@@ -181,7 +182,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
 template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
 void
 FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
-::Init( ComplexImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, bool & xIsOdd, float progressWeight )
+::Init( ComplexImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight )
 {
   // Create a process accumulator to track the progress of this minipipeline
   m_ProgressAccumulator = ProgressAccumulator::New();
@@ -189,7 +190,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
 
   InternalImagePointerType pi;
   
-  this->Init( pi, paddedKernel, xIsOdd, progressWeight * 0.6 );
+  this->Init( pi, paddedKernel, progressWeight * 0.6 );
 
   typename FFTFilterType::Pointer fft = FFTFilterType::New();
   fft->SetInput( pi );
@@ -219,7 +220,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
 template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
 void
 FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
-::End( ComplexImageType * paddedOutput, bool xIsOdd, float progressWeight )
+::End( ComplexImageType * paddedOutput, float progressWeight )
 {
   // Create a process accumulator for tracking the progress of this minipipeline
   ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
@@ -227,7 +228,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
 
   typename IFFTFilterType::Pointer ifft = IFFTFilterType::New();
   ifft->SetInput( paddedOutput );
-  ifft->SetActualXDimensionIsOdd( xIsOdd );
+  ifft->SetActualXDimensionIsOdd( m_XIsOdd );
   ifft->SetNumberOfThreads( this->GetNumberOfThreads() );
   ifft->SetReleaseDataFlag( true );
   if( progressWeight != 0 )
