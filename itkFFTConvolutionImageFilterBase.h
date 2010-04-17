@@ -86,6 +86,8 @@ public:
   itkStaticConstMacro(ImageDimension, unsigned int,
                       TOutputImage::ImageDimension);
 
+  typedef ImageBase< ImageDimension >              BaseImageType;
+  
   typedef itk::FFTRealToComplexConjugateImageFilter< InternalPrecisionType, ImageDimension > FFTFilterType;
   typedef itk::FFTComplexConjugateToRealImageFilter< InternalPrecisionType, ImageDimension > IFFTFilterType;
   typedef typename FFTFilterType::OutputImageType                                            ComplexImageType;
@@ -94,6 +96,7 @@ public:
 
   typedef typename itk::Image< InternalPrecisionType, ImageDimension > InternalImageType;
   typedef typename InternalImageType::Pointer                          InternalImagePointerType;
+  typedef typename InternalImageType::ConstPointer                     InternalImageConstPointerType;
 
   /** Standard New method. */
   itkNewMacro(Self);  
@@ -101,7 +104,7 @@ public:
   /** Runtime information support. */
   itkTypeMacro(FFTConvolutionImageFilterBase, ImageToImageFilter);
 
-   /** Set the kernel image */
+  /** Set the kernel image */
   void SetKernelImage(const TKernelImage *input)
     {
     // Process object is not const-correct so the const casting is required.
@@ -189,14 +192,20 @@ protected:
   void GenerateInputRequestedRegion();
   
   void Init( InternalImagePointerType & paddedInput, InternalImagePointerType & paddedKernel, float progressWeight=0.66 );
-  void Init( ComplexImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight=0.66 );
   void Init( InternalImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight=0.66 );
+  void Init( ComplexImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight=0.66 );
+  
+  InternalImageConstPointerType InternalInput( int pos ) const;
+  void PrepareImage( InternalImagePointerType & paddedInput, const InternalImageType * img,
+                     bool flip=false, bool normalize=false, float progressWeight=0.66 );
+  void PrepareImage( ComplexImagePointerType & paddedInput, const InternalImageType * img,
+                     bool flip=false, bool normalize=false, float progressWeight=0.66 );
   
   void RegisterInternalFilter( ProcessObject * filter, float progressWeight );
   
-  itkGetConstMacro(XIsOdd, bool);
-  itkSetMacro(XIsOdd, bool);
-  itkBooleanMacro(XIsOdd);
+  itkGetConstMacro(PaddedRegion, RegionType);
+  itkSetMacro(PaddedRegion, RegionType);
+  bool GetXIsOdd() const;
   
   void End( ComplexImageType * paddedOutput, float progressWeight=0.34 );
   void End( InternalImageType * paddedOutput, float progressWeight=0.34 );
@@ -211,7 +220,7 @@ private:
   int                          m_PadMethod;
   bool                         m_Normalize;
   ProgressAccumulator::Pointer m_ProgressAccumulator;
-  bool                         m_XIsOdd;
+  RegionType                   m_PaddedRegion;
 
 }; // end of class
 

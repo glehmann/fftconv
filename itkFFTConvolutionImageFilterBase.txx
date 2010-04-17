@@ -28,6 +28,8 @@
 #include "itkFFTComplexConjugateToRealImageFilter.h"
 #include "itkRegionFromReferenceImageFilter.h"
 #include "itkIntensityWindowingImageFilter.h"
+#include "itkConstantPadImageFilter.h"
+#include "itkChangeInformationImageFilter.h"
 
 namespace itk {
 
@@ -38,7 +40,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
   m_Normalize = true;
   m_GreatestPrimeFactor = 13;
   m_PadMethod = ZERO_FLUX_NEUMANN;
-  m_XIsOdd = false;
+  m_PaddedRegion = RegionType();
   this->SetNumberOfRequiredInputs(2);
 }
 
@@ -140,7 +142,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
   paddedInput->DisconnectPipeline();
   paddedKernel = pad->GetOutputKernel();
   paddedKernel->DisconnectPipeline();
-  m_XIsOdd = paddedInput->GetLargestPossibleRegion().GetSize()[0] % 2;
+  m_PaddedRegion = paddedInput->GetLargestPossibleRegion();
 }
 
 
@@ -184,13 +186,11 @@ void
 FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
 ::Init( ComplexImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight )
 {
-  // Create a process accumulator to track the progress of this minipipeline
-  m_ProgressAccumulator = ProgressAccumulator::New();
-  m_ProgressAccumulator->SetMiniPipelineFilter(this);
-
   InternalImagePointerType pi;
   
   this->Init( pi, paddedKernel, progressWeight * 0.6 );
+  
+  RegionType region = pi->GetLargestPossibleRegion();
 
   typename FFTFilterType::Pointer fft = FFTFilterType::New();
   fft->SetInput( pi );
@@ -204,7 +204,6 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
   fft->Update();
   paddedInput = fft->GetOutput();
   paddedInput->DisconnectPipeline();
-
 }
 
 
@@ -214,6 +213,15 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
 ::RegisterInternalFilter( ProcessObject * filter, float progressWeight )
 {
   m_ProgressAccumulator->RegisterInternalFilter( filter, progressWeight );
+}
+
+
+template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
+bool
+FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
+::GetXIsOdd() const
+{
+  return m_PaddedRegion.GetSize()[0] % 2;
 }
 
 
@@ -228,7 +236,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
 
   typename IFFTFilterType::Pointer ifft = IFFTFilterType::New();
   ifft->SetInput( paddedOutput );
-  ifft->SetActualXDimensionIsOdd( m_XIsOdd );
+  ifft->SetActualXDimensionIsOdd( GetXIsOdd() );
   ifft->SetNumberOfThreads( this->GetNumberOfThreads() );
   ifft->SetReleaseDataFlag( true );
   if( progressWeight != 0 )
@@ -276,6 +284,168 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
   crop->Update();
   this->GraftOutput( crop->GetOutput() );
   m_ProgressAccumulator = NULL;
+}
+
+template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
+typename FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>::InternalImageConstPointerType
+FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
+::InternalInput( int pos ) const
+{
+  // we have 3 kind of possible input image type - lets try them all
+  const InputImageType * inputImage = dynamic_cast<const InputImageType *>( this->ProcessObject::GetInput( pos ) );
+  const KernelImageType * kernelImage = dynamic_cast<const KernelImageType *>( this->ProcessObject::GetInput( pos ) );
+  const InternalImageType * internalImage = dynamic_cast<const InternalImageType *>( this->ProcessObject::GetInput( pos ) );
+
+  typedef CastImageFilter< InputImageType, InternalImageType > InputCastType;
+  typename InputCastType::Pointer inputCast = InputCastType::New();
+
+  typedef CastImageFilter< KernelImageType, InternalImageType > KernelCastType;
+  typename KernelCastType::Pointer kernelCast = KernelCastType::New();
+
+  if( inputImage != NULL )
+    {
+    inputCast->SetInput( inputImage );
+    inputCast->SetNumberOfThreads( this->GetNumberOfThreads() );
+    inputCast->SetReleaseDataFlag( true );
+    inputCast->SetInPlace( false );
+    inputCast->Update();
+    internalImage = inputCast->GetOutput();
+    }
+  else if( kernelImage != NULL )
+    {
+    kernelCast->SetInput( kernelImage );
+    kernelCast->SetNumberOfThreads( this->GetNumberOfThreads() );
+    kernelCast->SetReleaseDataFlag( true );
+    kernelCast->SetInPlace( false );
+    kernelCast->Update();
+    internalImage = kernelCast->GetOutput();
+    }
+  else if( internalImage != NULL )
+    {
+    // just do nothing - it's already of the right type
+    }
+  else
+    {
+    // or should it send an exception?
+    return NULL;
+    }
+  return internalImage;
+  }
+
+template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
+void
+FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
+::PrepareImage( InternalImagePointerType & paddedInput, const InternalImageType * img, bool flipImage, bool normalizeImage, float progressWeight )
+{
+  if( img == NULL )
+    {
+    paddedInput = NULL;
+    return;
+    }
+  
+  int nbOfFilters = 1; if( flipImage ) nbOfFilters++; if( normalizeImage ) nbOfFilters++;
+  const InternalImageType * internalImage = img;
+    
+  typedef itk::FlipImageFilter< InternalImageType > FlipType;
+  typename FlipType::Pointer flip = FlipType::New();
+  if( flipImage )
+    {
+    flip->SetInput( internalImage );
+    typename FlipType::FlipAxesArrayType axes;
+    axes.Fill( true ); // we must flip all the axes
+    flip->SetFlipAxes( axes );
+    flip->SetNumberOfThreads( this->GetNumberOfThreads() );
+    flip->SetReleaseDataFlag( true );
+    if( progressWeight != 0 )
+      {
+      m_ProgressAccumulator->RegisterInternalFilter( flip, 1.0 / nbOfFilters * progressWeight );
+      }
+    internalImage = flip->GetOutput();
+    }
+
+  typedef itk::NormalizeToConstantImageFilter< InternalImageType, InternalImageType > NormConstType;
+  typename NormConstType::Pointer norm;
+  if( normalizeImage )
+    {
+    norm = NormConstType::New();
+    norm->SetInput( internalImage );
+    norm->SetNumberOfThreads( this->GetNumberOfThreads() );
+    norm->SetReleaseDataFlag( true );
+    if( progressWeight != 0 )
+      {
+      m_ProgressAccumulator->RegisterInternalFilter( norm, 1.0 / nbOfFilters * progressWeight );
+      }
+    internalImage = norm->GetOutput();
+    }
+
+  RegionType referenceRegion = this->GetPaddedRegion();
+  RegionType inputRegion = img->GetLargestPossibleRegion();
+  SizeType s;
+
+  typedef typename itk::ConstantPadImageFilter< InternalImageType, InternalImageType > KernelPadType;
+  typename KernelPadType::Pointer pad = KernelPadType::New();
+  pad->SetInput( internalImage );
+  pad->SetNumberOfThreads( this->GetNumberOfThreads() );
+  for( int i=0; i<ImageDimension; i++ )
+    {
+    s[i] = ( referenceRegion.GetSize()[i] - inputRegion.GetSize()[i] ) / 2;
+    }
+  pad->SetPadUpperBound( s );
+  for( int i=0; i<ImageDimension; i++ )
+    {
+    // s[i] = itk::Math::Ceil(( referenceRegion.GetSize()[i] - inputRegion.GetSize()[i] ) / 2.0 );
+    // this line should do the same, but without requirement on ITK cvs
+    s[i] = ( referenceRegion.GetSize()[i] - inputRegion.GetSize()[i] ) / 2 +  ( referenceRegion.GetSize()[i] - inputRegion.GetSize()[i] ) % 2;
+    }
+  pad->SetPadLowerBound( s );
+  if( progressWeight != 0 )
+    {
+    m_ProgressAccumulator->RegisterInternalFilter( pad, 1.0 / nbOfFilters * progressWeight );
+    }
+  
+  typedef typename itk::ChangeInformationImageFilter< InternalImageType > ChangeType;
+  typename ChangeType::Pointer change = ChangeType::New();
+  change->SetInput( pad->GetOutput() );
+  // can't be used because the reference is not of class ImageBase
+  // change->SetUseReferenceImage( true );
+  // change->SetReferenceImage( reference );
+  change->SetOutputOffset( const_cast<long *>((referenceRegion.GetIndex() - inputRegion.GetIndex() + s).m_Offset) );
+  change->SetChangeRegion( true );
+  // no progress for change - it does almost nothing
+  
+  paddedInput = change->GetOutput();
+  paddedInput->Update();
+  paddedInput->DisconnectPipeline();
+}
+
+template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
+void
+FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
+::PrepareImage( ComplexImagePointerType & paddedInput, const InternalImageType * img, bool flipImage, bool normalizeImage, float progressWeight )
+{
+  if( img == NULL )
+    {
+    paddedInput = NULL;
+    return;
+    }
+
+  InternalImagePointerType pi;
+  
+  this->PrepareImage( pi, img, flipImage, normalizeImage, progressWeight * 0.1 );
+
+  typename FFTFilterType::Pointer fft = FFTFilterType::New();
+  fft->SetInput( pi );
+  fft->SetNumberOfThreads( this->GetNumberOfThreads() );
+  fft->SetReleaseDataFlag( true );
+  if( progressWeight != 0 )
+    {
+    m_ProgressAccumulator->RegisterInternalFilter( fft, progressWeight * 0.9 );
+    }
+
+  fft->Update();
+  paddedInput = fft->GetOutput();
+  paddedInput->DisconnectPipeline();
+
 }
 
 template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
