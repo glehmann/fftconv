@@ -191,9 +191,9 @@ protected:
 
   void GenerateInputRequestedRegion();
   
-  void Init( InternalImagePointerType & paddedInput, InternalImagePointerType & paddedKernel, float progressWeight=0.66 );
-  void Init( InternalImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight=0.66 );
-  void Init( ComplexImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight=0.66 );
+  void PrepareInputs( InternalImagePointerType & paddedInput, InternalImagePointerType & paddedKernel, float progressWeight=0.66 );
+  void PrepareInputs( InternalImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight=0.66 );
+  void PrepareInputs( ComplexImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight=0.66 );
   
   InternalImageConstPointerType InternalInput( int pos ) const;
   void PrepareImage( InternalImagePointerType & paddedInput, const InternalImageType * img,
@@ -207,8 +207,8 @@ protected:
   itkSetMacro(PaddedRegion, RegionType);
   bool GetXIsOdd() const;
   
-  void End( ComplexImageType * paddedOutput, float progressWeight=0.34 );
-  void End( InternalImageType * paddedOutput, float progressWeight=0.34 );
+  void ProduceOutput( ComplexImageType * paddedOutput, float progressWeight=0.34 );
+  void ProduceOutput( InternalImageType * paddedOutput, float progressWeight=0.34 );
 
   void PrintSelf(std::ostream& os, Indent indent) const;
 

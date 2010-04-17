@@ -66,7 +66,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
 template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
 void
 FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
-::Init( InternalImagePointerType & paddedInput, InternalImagePointerType & paddedKernel, float progressWeight )
+::PrepareInputs( InternalImagePointerType & paddedInput, InternalImagePointerType & paddedKernel, float progressWeight )
 {
   const InputImageType * input = this->GetInput();
   const KernelImageType * kernel = this->GetKernelImage();
@@ -149,11 +149,11 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
 template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
 void
 FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
-::Init( InternalImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight )
+::PrepareInputs( InternalImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight )
 {
   InternalImagePointerType pk;
   
-  this->Init( paddedInput, pk, 0.15 * progressWeight );
+  this->PrepareInputs( paddedInput, pk, 0.15 * progressWeight );
 
   typedef itk::FFTShiftImageFilter< InternalImageType, InternalImageType > ShiftType;
   typename ShiftType::Pointer shift = ShiftType::New();
@@ -184,11 +184,11 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
 template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
 void
 FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
-::Init( ComplexImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight )
+::PrepareInputs( ComplexImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight )
 {
   InternalImagePointerType pi;
   
-  this->Init( pi, paddedKernel, progressWeight * 0.6 );
+  this->PrepareInputs( pi, paddedKernel, progressWeight * 0.6 );
   
   RegionType region = pi->GetLargestPossibleRegion();
 
@@ -228,7 +228,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
 template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
 void
 FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
-::End( ComplexImageType * paddedOutput, float progressWeight )
+::ProduceOutput( ComplexImageType * paddedOutput, float progressWeight )
 {
   // Create a process accumulator for tracking the progress of this minipipeline
   ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
@@ -244,13 +244,13 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
     m_ProgressAccumulator->RegisterInternalFilter( ifft, progressWeight * 0.8 );
     }
   
-  this->End( ifft->GetOutput(), progressWeight * 0.2 );
+  this->ProduceOutput( ifft->GetOutput(), progressWeight * 0.2 );
 }
 
 template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
 void
 FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
-::End( InternalImageType * paddedOutput, float progressWeight )
+::ProduceOutput( InternalImageType * paddedOutput, float progressWeight )
 {
   // Create a process accumulator for tracking the progress of this minipipeline
   ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
