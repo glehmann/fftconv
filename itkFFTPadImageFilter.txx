@@ -212,12 +212,12 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
     {
     for( int i=0; i<ImageDimension; i++ )
       {
-      s[i] = ir0.GetIndex()[1] - or0.GetIndex()[i];
+      s[i] = ir0.GetIndex()[i] - or0.GetIndex()[i];
       }
     pad0->SetPadLowerBound( s );
     for( int i=0; i<ImageDimension; i++ )
       {
-      s[i] = or0.GetSize()[i] - ( ir0.GetIndex()[1] - or0.GetIndex()[i] + ir0.GetSize()[i]);
+      s[i] = or0.GetSize()[i] - ( ir0.GetIndex()[i] - or0.GetIndex()[i] + ir0.GetSize()[i]);
       }
     pad0->SetPadUpperBound( s );
     }
