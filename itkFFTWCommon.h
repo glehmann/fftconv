@@ -20,7 +20,7 @@
 #if defined(USE_FFTWF) || defined(USE_FFTWD)
 #include "fftw3.h"
 #endif
-#include "itkFastMutexLock.h"
+#include "itkFFTWLock.h"
 
 namespace itk
 {
@@ -49,28 +49,6 @@ public:
   typedef fftwf_complex ComplexType;
   typedef fftwf_plan    PlanType;
   typedef Proxy<float>  Self;
-  // a global lock to ensure thread safety
-  static itk::FastMutexLock::Pointer lock;
-  static void Lock()
-    {
-    if( Self::lock.IsNull() )
-      {
-      // init stuff
-      Self::lock = itk::FastMutexLock::New();
-      Self::lock->Lock();
-      fftwf_init_threads();
-      }
-    else
-      {
-      Self::lock->Lock();
-      }
-       
-    }
-  static void Unlock()
-    {
-    Self::lock->Unlock();
-    }
-   
 
   static PlanType Plan_dft_c2r_1d(int n,
                                   ComplexType *in,
@@ -78,10 +56,10 @@ public:
                                   unsigned flags,
                                   int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftwf_plan_with_nthreads(threads);
     PlanType plan = fftwf_plan_dft_c2r_1d(n,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static PlanType Plan_dft_c2r_2d(int nx, 
@@ -91,10 +69,10 @@ public:
                                   unsigned flags,
                                   int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftwf_plan_with_nthreads(threads);
     PlanType plan = fftwf_plan_dft_c2r_2d(nx,ny,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static PlanType Plan_dft_c2r_3d(int nx, 
@@ -105,10 +83,10 @@ public:
                                   unsigned flags,
                                   int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftwf_plan_with_nthreads(threads);
     PlanType plan = fftwf_plan_dft_c2r_3d(nx,ny,nz,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static PlanType Plan_dft_c2r(int rank, 
@@ -118,10 +96,10 @@ public:
                                unsigned flags,
                                int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftwf_plan_with_nthreads(threads);
     PlanType plan = fftwf_plan_dft_c2r(rank,n,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
 
@@ -131,10 +109,10 @@ public:
                                   unsigned flags,
                                   int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftwf_plan_with_nthreads(threads);
     PlanType plan = fftwf_plan_dft_r2c_1d(n,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static PlanType Plan_dft_r2c_2d(int nx, 
@@ -144,10 +122,10 @@ public:
                                   unsigned flags,
                                   int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftwf_plan_with_nthreads(threads);
     PlanType plan = fftwf_plan_dft_r2c_2d(nx,ny,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static PlanType Plan_dft_r2c_3d(int nx, 
@@ -158,10 +136,10 @@ public:
                                   unsigned flags,
                                   int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftwf_plan_with_nthreads(threads);
     PlanType plan = fftwf_plan_dft_r2c_3d(nx,ny,nz,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static PlanType Plan_dft_r2c(int rank, 
@@ -171,10 +149,10 @@ public:
                                unsigned flags,
                                int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftwf_plan_with_nthreads(threads);
     PlanType plan = fftwf_plan_dft_r2c(rank,n,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
 
@@ -188,8 +166,6 @@ public:
     }
 };
 
-itk::FastMutexLock::Pointer Proxy<float>::lock = NULL;
-   
 #endif // USE_FFTWF
 
 
@@ -203,38 +179,16 @@ public:
   typedef fftw_plan     PlanType;
   typedef Proxy<double> Self;
 
-  // a global lock to ensure thread safety
-  static itk::FastMutexLock::Pointer lock;
-  static void Lock()
-    {
-    if( Self::lock.IsNull() )
-      {
-      // init stuff
-      Self::lock = itk::FastMutexLock::New();
-      Self::lock->Lock();
-      fftw_init_threads();
-      }
-    else
-      {
-      lock->Lock();
-      }
-       
-    }
-  static void Unlock()
-    {
-    lock->Unlock();
-    }
-   
   static PlanType Plan_dft_c2r_1d(int n,
                                   ComplexType *in,
                                   PixelType *out,
                                   unsigned flags,
                                   int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftw_plan_with_nthreads(threads);
     PlanType plan = fftw_plan_dft_c2r_1d(n,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static PlanType Plan_dft_c2r_2d(int nx, 
@@ -244,10 +198,10 @@ public:
                                   unsigned flags,
                                   int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftw_plan_with_nthreads(threads);
     PlanType plan = fftw_plan_dft_c2r_2d(nx,ny,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static PlanType Plan_dft_c2r_3d(int nx, 
@@ -258,10 +212,10 @@ public:
                                   unsigned flags,
                                   int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftw_plan_with_nthreads(threads);
     PlanType plan = fftw_plan_dft_c2r_3d(nx,ny,nz,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static PlanType Plan_dft_c2r(int rank, 
@@ -271,10 +225,10 @@ public:
                                unsigned flags,
                                int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftw_plan_with_nthreads(threads);
     PlanType plan = fftw_plan_dft_c2r(rank,n,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
 
@@ -284,10 +238,10 @@ public:
                                   unsigned flags,
                                   int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftw_plan_with_nthreads(threads);
     PlanType plan = fftw_plan_dft_r2c_1d(n,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static PlanType Plan_dft_r2c_2d(int nx, 
@@ -297,10 +251,10 @@ public:
                                   unsigned flags,
                                   int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftw_plan_with_nthreads(threads);
     PlanType plan = fftw_plan_dft_r2c_2d(nx,ny,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static PlanType Plan_dft_r2c_3d(int nx, 
@@ -311,10 +265,10 @@ public:
                                   unsigned flags,
                                   int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftw_plan_with_nthreads(threads);
     PlanType plan = fftw_plan_dft_r2c_3d(nx,ny,nz,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static PlanType Plan_dft_r2c(int rank, 
@@ -324,10 +278,10 @@ public:
                                unsigned flags,
                                int threads=1)
     {
-    Lock();
+    FFTWLock::Lock();
     fftw_plan_with_nthreads(threads);
     PlanType plan = fftw_plan_dft_r2c(rank,n,in,out,flags);
-    Unlock();
+    FFTWLock::Unlock();
     return plan;
     }
   static void Execute(PlanType p)
@@ -340,8 +294,6 @@ public:
     }
 };
 
-itk::FastMutexLock::Pointer Proxy<double>::lock = NULL;
-   
 #endif
 }
 }

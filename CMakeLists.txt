@@ -70,33 +70,10 @@ ENDIF(BUILD_WRAPPERS)
 
 IF(BUILD_TESTING)
 
-SET(CurrentExe "ref")
-ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
-TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
-
-SET(CurrentExe "pad")
-ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
-TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
-
-SET(CurrentExe "pad1")
-ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
-TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
-
-SET(CurrentExe "norm")
-ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
-TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
-
-SET(CurrentExe "fftconv")
-ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
-TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
-
-SET(CurrentExe "conv")
-ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
-TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
-
-SET(CurrentExe "perf2D")
-ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
-TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
+FOREACH(CurrentExe ref pad pad1 norm fftconv conv perf2D)
+  ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx itkFFTWLock.cxx)
+  TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
+ENDFOREACH(CurrentExe)
 
 ENDIF(BUILD_TESTING)
 
