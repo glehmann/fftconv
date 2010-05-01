@@ -36,6 +36,7 @@ ENDFOREACH(Package)
 #Set any libraries that your project depends on.
 #examples: ITKCommon, VTKRendering, etc
 SET(Libraries
+  ITKAlgorithms
   ITKCommon
   ITKBasicFilters
   ITKIO
