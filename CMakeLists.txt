@@ -1,5 +1,5 @@
 #Change PROJECT_NAME to the name of your project
-PROJECT(deconv)
+PROJECT(fftconv)
 
 # required to avoid warnings while running cmake
 CMAKE_MINIMUM_REQUIRED(VERSION 2.4.2)
