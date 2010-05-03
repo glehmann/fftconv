@@ -85,11 +85,11 @@ FFTWLock
   // std::cout << "======== cleanup fftw stuff =========" << std::endl;
   std::string auto_export_env;
   if( m_NewWisdomAvailable && ( !itksys::SystemTools::GetEnv("ITK_FFTW_WISDOM_AUTO_IMPORT", auto_export_env) ||
-      auto_export_env != "no" &&
+      ( auto_export_env != "no" &&
       auto_export_env != "NO" && 
       auto_export_env != "off" && 
       auto_export_env != "OFF" &&
-      auto_export_env != "0" ) )
+      auto_export_env != "0" ) ) )
     {
     // import the wisdom files again to be sure to not erase the wisdom saved in another process
     ImportWisdomFileFloat();
