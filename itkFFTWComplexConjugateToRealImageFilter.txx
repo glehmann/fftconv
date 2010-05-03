@@ -91,7 +91,7 @@ BeforeThreadedGenerateData()
       plan = FFTWProxyType::Plan_dft_c2r_1d(outputSize[0],
                                      in,
                                      out,
-                                     FFTW_PATIENT,
+                                     FFTWLock::GetGlobalOptimizationLevel(),
                                      this->GetNumberOfThreads(),
                                      !m_CanUseDestructiveAlgorithm);
       break;
@@ -99,7 +99,7 @@ BeforeThreadedGenerateData()
       plan = FFTWProxyType::Plan_dft_c2r_2d(outputSize[1],outputSize[0],
                                      in,
                                      out,
-                                     FFTW_PATIENT,
+                                     FFTWLock::GetGlobalOptimizationLevel(),
                                      this->GetNumberOfThreads(),
                                      !m_CanUseDestructiveAlgorithm);
       break;
@@ -107,7 +107,7 @@ BeforeThreadedGenerateData()
       plan = FFTWProxyType::Plan_dft_c2r_3d(outputSize[2],outputSize[1],outputSize[0],
                                      in,
                                      out,
-                                     FFTW_PATIENT,
+                                     FFTWLock::GetGlobalOptimizationLevel(),
                                      this->GetNumberOfThreads(),
                                      !m_CanUseDestructiveAlgorithm);
       break;
@@ -120,7 +120,7 @@ BeforeThreadedGenerateData()
       plan = FFTWProxyType::Plan_dft_c2r(VDimension,sizes,
                                   in,
                                   out,
-                                  FFTW_PATIENT,
+                                  FFTWLock::GetGlobalOptimizationLevel(),
                                   this->GetNumberOfThreads(),
                                   !m_CanUseDestructiveAlgorithm);
       delete [] sizes;

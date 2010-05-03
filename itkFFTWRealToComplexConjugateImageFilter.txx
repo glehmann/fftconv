@@ -74,7 +74,7 @@ GenerateData()
   typename FFTWProxyType::PlanType plan;
   TPixel * in = const_cast<TPixel*>(inputPtr->GetBufferPointer());
   typename FFTWProxyType::ComplexType * out = (typename FFTWProxyType::ComplexType*) outputPtr->GetBufferPointer();
-  int flags = FFTW_PATIENT;
+  int flags = FFTWLock::GetGlobalOptimizationLevel();
   if( !m_CanUseDestructiveAlgorithm )
     {
     // if the input is about to be destroyed, there is no need to force fftw
