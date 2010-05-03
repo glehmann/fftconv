@@ -18,6 +18,9 @@
 #define __itkFFTWLock_h
 
 #include "itkSimpleFastMutexLock.h"
+#if defined(USE_FFTWF) || defined(USE_FFTWD)
+#include "fftw3.h"
+#endif
 
 namespace itk
 {
@@ -32,6 +35,27 @@ class  FFTWLock
   
   static void Lock();
   static void Unlock();
+  static void NewWisdomAvailable();
+  
+  enum { ESTIMATE=FFTW_ESTIMATE,
+         PATIENT=FFTW_PATIENT,
+         EXHAUSTIVE=FFTW_EXHAUSTIVE } Optimization;
+         
+  static int GetGlobalOptimizationLevel();
+  static void SetGlobalOptimizationLevel(int opt);
+  
+  static std::string GetWisdomFileDefaultBaseName();
+  // static void SetWisdomFileDefaultBaseName( std::string fname );
+  
+  bool ImportWisdomFileDouble( std::string fname );
+  bool ExportWisdomFileDouble( std::string fname );
+  bool ImportWisdomFileDouble();
+  bool ExportWisdomFileDouble();
+
+  bool ImportWisdomFileFloat( std::string fname );
+  bool ExportWisdomFileFloat( std::string fname );
+  bool ImportWisdomFileFloat();
+  bool ExportWisdomFileFloat();
   
   protected:
   
@@ -40,6 +64,9 @@ class  FFTWLock
   
   static FFTWLock            m_Singleton;
   static SimpleFastMutexLock m_Lock;
+  static bool                m_NewWisdomAvailable;
+  static int                 m_GlobalOptimizationLevel;
+  // static std::string         m_WisdomFileDefaultBaseName;
 
 };
 }

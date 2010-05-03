@@ -81,11 +81,6 @@ BeforeThreadedGenerateData()
     {
     // we must use a buffer where fftw can work and destroy what it wants
     in = new typename FFTWProxyType::ComplexType[total_inputSize];
-    // no need to copy the data after the plan creation: FFTW_ESTIMATE ensure that the input
-    // in not destroyed during this step
-    memcpy(in,
-           inputPtr->GetBufferPointer(),
-           total_inputSize * sizeof(typename FFTWProxyType::ComplexType));
     }
   TPixel * out = outputPtr->GetBufferPointer();
   typename FFTWProxyType::PlanType plan;
@@ -96,22 +91,25 @@ BeforeThreadedGenerateData()
       plan = FFTWProxyType::Plan_dft_c2r_1d(outputSize[0],
                                      in,
                                      out,
-                                     FFTW_ESTIMATE,
-                                     this->GetNumberOfThreads());
+                                     FFTW_PATIENT,
+                                     this->GetNumberOfThreads(),
+                                     !m_CanUseDestructiveAlgorithm);
       break;
     case 2:
       plan = FFTWProxyType::Plan_dft_c2r_2d(outputSize[1],outputSize[0],
                                      in,
                                      out,
-                                     FFTW_ESTIMATE,
-                                     this->GetNumberOfThreads());
+                                     FFTW_PATIENT,
+                                     this->GetNumberOfThreads(),
+                                     !m_CanUseDestructiveAlgorithm);
       break;
     case 3:
       plan = FFTWProxyType::Plan_dft_c2r_3d(outputSize[2],outputSize[1],outputSize[0],
                                      in,
                                      out,
-                                     FFTW_ESTIMATE,
-                                     this->GetNumberOfThreads());
+                                     FFTW_PATIENT,
+                                     this->GetNumberOfThreads(),
+                                     !m_CanUseDestructiveAlgorithm);
       break;
     default:
       int *sizes = new int[VDimension];
@@ -122,11 +120,18 @@ BeforeThreadedGenerateData()
       plan = FFTWProxyType::Plan_dft_c2r(VDimension,sizes,
                                   in,
                                   out,
-                                  FFTW_ESTIMATE,
-                                  this->GetNumberOfThreads());
+                                  FFTW_PATIENT,
+                                  this->GetNumberOfThreads(),
+                                  !m_CanUseDestructiveAlgorithm);
       delete [] sizes;
     }
-  fftw::Proxy<TPixel>::Execute(plan);
+  if( !m_CanUseDestructiveAlgorithm )
+    {
+    memcpy(in,
+           inputPtr->GetBufferPointer(),
+           total_inputSize * sizeof(typename FFTWProxyType::ComplexType));
+    }
+  FFTWProxyType::Execute(plan);
   
   // some cleanup
   FFTWProxyType::DestroyPlan(plan);
