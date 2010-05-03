@@ -72,7 +72,7 @@ public:
         {
         // lets create a plan with a fake input to generate the wisdom
         ComplexType * din = new ComplexType[n];
-        fftwf_plan_dft_c2r_1d(n,in,out,flags);
+        fftwf_plan_dft_c2r_1d(n,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftwf_plan_dft_c2r_1d(n,in,out,flags | FFTW_WISDOM_ONLY);
@@ -107,7 +107,7 @@ public:
         {
         // lets create a plan with a fake input to generate the wisdom
         ComplexType * din = new ComplexType[nx*ny];
-        fftwf_plan_dft_c2r_2d(nx,ny,in,out,flags);
+        fftwf_plan_dft_c2r_2d(nx,ny,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftwf_plan_dft_c2r_2d(nx,ny,in,out,flags | FFTW_WISDOM_ONLY);
@@ -143,7 +143,7 @@ public:
         {
         // lets create a plan with a fake input to generate the wisdom
         ComplexType * din = new ComplexType[nx*ny*nz];
-        fftwf_plan_dft_c2r_3d(nx,ny,nz,in,out,flags);
+        fftwf_plan_dft_c2r_3d(nx,ny,nz,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftwf_plan_dft_c2r_3d(nx,ny,nz,in,out,flags | FFTW_WISDOM_ONLY);
@@ -183,7 +183,7 @@ public:
           total += n[i];
           }
         ComplexType * din = new ComplexType[total];
-        fftwf_plan_dft_c2r(rank,n,in,out,flags);
+        fftwf_plan_dft_c2r(rank,n,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftwf_plan_dft_c2r(rank,n,in,out,flags | FFTW_WISDOM_ONLY);
@@ -218,7 +218,7 @@ public:
         {
         // lets create a plan with a fake input to generate the wisdom
         PixelType * din = new PixelType[n];
-        fftwf_plan_dft_r2c_1d(n,in,out,flags);
+        fftwf_plan_dft_r2c_1d(n,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftwf_plan_dft_r2c_1d(n,in,out,flags | FFTW_WISDOM_ONLY);
@@ -253,7 +253,7 @@ public:
         {
         // lets create a plan with a fake input to generate the wisdom
         PixelType * din = new PixelType[nx*ny];
-        fftwf_plan_dft_r2c_2d(nx,ny,in,out,flags);
+        fftwf_plan_dft_r2c_2d(nx,ny,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftwf_plan_dft_r2c_2d(nx,ny,in,out,flags | FFTW_WISDOM_ONLY);
@@ -289,7 +289,7 @@ public:
         {
         // lets create a plan with a fake input to generate the wisdom
         PixelType * din = new PixelType[nx*ny*nz];
-        fftwf_plan_dft_r2c_3d(nx,ny,nz,in,out,flags);
+        fftwf_plan_dft_r2c_3d(nx,ny,nz,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftwf_plan_dft_r2c_3d(nx,ny,nz,in,out,flags | FFTW_WISDOM_ONLY);
@@ -329,7 +329,7 @@ public:
           total += n[i];
           }
         PixelType * din = new PixelType[total];
-        fftwf_plan_dft_r2c(rank,n,in,out,flags);
+        fftwf_plan_dft_r2c(rank,n,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftwf_plan_dft_r2c(rank,n,in,out,flags | FFTW_WISDOM_ONLY);
@@ -386,7 +386,7 @@ public:
         {
         // lets create a plan with a fake input to generate the wisdom
         ComplexType * din = new ComplexType[n];
-        fftw_plan_dft_c2r_1d(n,in,out,flags);
+        fftw_plan_dft_c2r_1d(n,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftw_plan_dft_c2r_1d(n,in,out,flags | FFTW_WISDOM_ONLY);
@@ -421,7 +421,7 @@ public:
         {
         // lets create a plan with a fake input to generate the wisdom
         ComplexType * din = new ComplexType[nx*ny];
-        fftw_plan_dft_c2r_2d(nx,ny,in,out,flags);
+        fftw_plan_dft_c2r_2d(nx,ny,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftw_plan_dft_c2r_2d(nx,ny,in,out,flags | FFTW_WISDOM_ONLY);
@@ -457,7 +457,7 @@ public:
         {
         // lets create a plan with a fake input to generate the wisdom
         ComplexType * din = new ComplexType[nx*ny*nz];
-        fftw_plan_dft_c2r_3d(nx,ny,nz,in,out,flags);
+        fftw_plan_dft_c2r_3d(nx,ny,nz,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftw_plan_dft_c2r_3d(nx,ny,nz,in,out,flags | FFTW_WISDOM_ONLY);
@@ -497,7 +497,7 @@ public:
           total += n[i];
           }
         ComplexType * din = new ComplexType[total];
-        fftw_plan_dft_c2r(rank,n,in,out,flags);
+        fftw_plan_dft_c2r(rank,n,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftw_plan_dft_c2r(rank,n,in,out,flags | FFTW_WISDOM_ONLY);
@@ -532,7 +532,7 @@ public:
         {
         // lets create a plan with a fake input to generate the wisdom
         PixelType * din = new PixelType[n];
-        fftw_plan_dft_r2c_1d(n,in,out,flags);
+        fftw_plan_dft_r2c_1d(n,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftw_plan_dft_r2c_1d(n,in,out,flags | FFTW_WISDOM_ONLY);
@@ -567,7 +567,7 @@ public:
         {
         // lets create a plan with a fake input to generate the wisdom
         PixelType * din = new PixelType[nx*ny];
-        fftw_plan_dft_r2c_2d(nx,ny,in,out,flags);
+        fftw_plan_dft_r2c_2d(nx,ny,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftw_plan_dft_r2c_2d(nx,ny,in,out,flags | FFTW_WISDOM_ONLY);
@@ -603,7 +603,7 @@ public:
         {
         // lets create a plan with a fake input to generate the wisdom
         PixelType * din = new PixelType[nx*ny*nz];
-        fftw_plan_dft_r2c_3d(nx,ny,nz,in,out,flags);
+        fftw_plan_dft_r2c_3d(nx,ny,nz,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftw_plan_dft_r2c_3d(nx,ny,nz,in,out,flags | FFTW_WISDOM_ONLY);
@@ -643,7 +643,7 @@ public:
           total += n[i];
           }
         PixelType * din = new PixelType[total];
-        fftw_plan_dft_r2c(rank,n,in,out,flags);
+        fftw_plan_dft_r2c(rank,n,din,out,flags);
         delete [] din;
         // and then create the final plan - this time it shouldn't fail
         plan = fftw_plan_dft_r2c(rank,n,in,out,flags | FFTW_WISDOM_ONLY);
