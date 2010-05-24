@@ -17,7 +17,7 @@
 #ifndef __itkFFTConvolutionImageFilterBase_h
 #define __itkFFTConvolutionImageFilterBase_h
 
-#include "itkImageToImageFilter.h"
+#include "itkFFTPadImageFilter.h"
 #include "itkConceptChecking.h"
 #include "itkFFTRealToComplexConjugateImageFilter.h"
 #include "itkFFTComplexConjugateToRealImageFilter.h"
@@ -48,13 +48,13 @@ namespace itk {
  */
 template<class TInputImage, class TKernelImage=TInputImage, class TOutputImage=TInputImage, class TInternalPrecision=float>
 class ITK_EXPORT FFTConvolutionImageFilterBase : 
-    public ImageToImageFilter<TInputImage, TOutputImage>
+    public FFTPadImageFilter<TInputImage, TKernelImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
   typedef FFTConvolutionImageFilterBase Self;
 
-  typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
+  typedef FFTPadImageFilter<TInputImage, TKernelImage, TOutputImage> Superclass;
 
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -102,7 +102,7 @@ public:
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(FFTConvolutionImageFilterBase, ImageToImageFilter);
+  itkTypeMacro(FFTConvolutionImageFilterBase, FFTPadImageFilter);
 
   /** Set the kernel image */
   void SetKernelImage(const TKernelImage *input)
@@ -118,19 +118,7 @@ public:
       const_cast<DataObject *>(this->ProcessObject::GetInput(1)));
     }
 
-  /** Set the input image */
-  void SetInput1(const TInputImage *input)
-    {
-    this->SetInput( input );
-    }
-
   /** Set the kernel image */
-  void SetInput2(const TKernelImage *input)
-    {
-    this->SetKernelImage( input );
-    }
-
-   /** Set the kernel image */
   void SetPointSpreadFunction(const PointSpreadFunctionType *input)
     {
     // Process object is not const-correct so the const casting is required.
@@ -145,35 +133,20 @@ public:
     }
 
   /**
-   * Set/Get the greatest prime factor allowed on the size of the padded image.
-   * The filter increase the size of the image to reach a size with the greatest
-   * prime factor smaller or equal to the specified value. The default value is
-   * 13, which is the greatest prime number for which the FFT are precomputed
-   * in FFTW, and thus gives very good performance.
-   * A greatest prime factor of 2 produce a size which is a power of 2, and thus
-   * is suitable for vnl base fft filters.
-   * A greatest prime factor of 1 or less - typically 0 - disable the extra padding.
-   *
-   * Warning: this parameter is not used (and useful) only when ITK is built with
-   * FFTW support.
-   */
-  itkGetConstMacro(GreatestPrimeFactor, int);
-  itkSetMacro(GreatestPrimeFactor, int);
-  
-  /**
-   * Set/Get the padding method.
-   */
-  typedef enum { NO_PADDING=0, ZERO_FLUX_NEUMANN=1, ZERO=2, MIRROR=3, WRAP=4 } PadMethod;
-  itkGetConstMacro(PadMethod, int);
-  itkSetMacro(PadMethod, int);
-  
-  /**
    * Set/Get whether the kernel should be normalized to one or not.
    * Default is true.
    */
   itkGetConstMacro(Normalize, bool);
   itkSetMacro(Normalize, bool);
   itkBooleanMacro(Normalize);
+  
+  /**
+   * Set/Get whether the output image should be cropped to the original input size or not.
+   * Default is true.
+   */
+  itkGetConstMacro(CropOutput, bool);
+  itkSetMacro(CropOutput, bool);
+  itkBooleanMacro(CropOutput);
   
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -190,6 +163,7 @@ protected:
   ~FFTConvolutionImageFilterBase() {};
 
   void GenerateInputRequestedRegion();
+  void GenerateOutputInformation();
   
   void PrepareInputs( InternalImagePointerType & paddedInput, InternalImagePointerType & paddedKernel, float progressWeight=0.66 );
   void PrepareInputs( InternalImagePointerType & paddedInput, ComplexImagePointerType & paddedKernel, float progressWeight=0.66 );
@@ -216,9 +190,8 @@ private:
   FFTConvolutionImageFilterBase(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  int                          m_GreatestPrimeFactor;
-  int                          m_PadMethod;
   bool                         m_Normalize;
+  bool                         m_CropOutput;
   ProgressAccumulator::Pointer m_ProgressAccumulator;
   RegionType                   m_PaddedRegion;
 

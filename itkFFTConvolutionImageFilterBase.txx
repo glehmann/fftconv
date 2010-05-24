@@ -19,7 +19,6 @@
 
 #include "itkFFTConvolutionImageFilterBase.h"
 #include "itkFlipImageFilter.h"
-#include "itkFFTPadImageFilter.h"
 #include "itkNormalizeToConstantImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkFFTShiftImageFilter.h"
@@ -38,10 +37,12 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
 ::FFTConvolutionImageFilterBase()
 {
   m_Normalize = true;
-  m_GreatestPrimeFactor = 13;
-  m_PadMethod = ZERO_FLUX_NEUMANN;
+  m_CropOutput = true;
   m_PaddedRegion = RegionType();
   this->SetNumberOfRequiredInputs(2);
+  // don't use the second output of the superclass
+  this->SetNumberOfRequiredOutputs(1);
+  this->SetNthOutput( 1, NULL );
 }
 
 template <class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
@@ -62,6 +63,22 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
   input1->SetRequestedRegion( input1->GetLargestPossibleRegion() );
 }
 
+template <class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
+void 
+FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternalPrecision>
+::GenerateOutputInformation()
+{
+  // call the implementation from FFTPad if the output shouldn't be cropped, and the one
+  // from ImageToImageFilter if the output should be cropped
+  if( m_CropOutput )
+    {
+    Superclass::Superclass::GenerateOutputInformation();
+    }
+  else
+    {
+    Superclass::GenerateOutputInformation();
+    }
+}
 
 template<class TInputImage, class TKernelImage, class TOutputImage, class TInternalPrecision>
 void
@@ -114,7 +131,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
   pad->SetInputKernel( norm->GetOutput() );
   pad->SetNumberOfThreads( this->GetNumberOfThreads() );
   pad->SetReleaseDataFlag( true );
-  pad->SetPadMethod( m_PadMethod );
+  pad->SetPadMethod( this->GetPadMethod() );
   if( progressWeight != 0 )
     {
     m_ProgressAccumulator->RegisterInternalFilter( pad,  0.34 * progressWeight );
@@ -126,14 +143,14 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
     {
     pad->SetPadToPowerOfTwo( true );
     // fake the cyclic behavior
-    if( m_PadMethod == NO_PADDING )
+    if( this->GetPadMethod() == this->NO_PADDING )
       {
-      pad->SetPadMethod( WRAP );
+      pad->SetPadMethod( this->WRAP );
       }
     }
   else
     {
-    pad->SetGreatestPrimeFactor( m_GreatestPrimeFactor );
+    pad->SetGreatestPrimeFactor( this->GetGreatestPrimeFactor() );
     }
   
   pad->Update();
@@ -264,25 +281,39 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
   window->SetNumberOfThreads( this->GetNumberOfThreads() );
   window->SetReleaseDataFlag( true );
   window->SetInPlace( true );
-  if( progressWeight != 0 )
-    {
-    m_ProgressAccumulator->RegisterInternalFilter( window, 0.1 * progressWeight );
-    }
-
-  typedef itk::RegionFromReferenceImageFilter< OutputImageType, OutputImageType > CropType;
-  typename CropType::Pointer crop = CropType::New();
-  crop->SetInput( window->GetOutput() );
-  crop->SetReferenceImage( this->GetInput() );
-  crop->SetNumberOfThreads( this->GetNumberOfThreads() );
-  if( progressWeight != 0 )
-    {
-    m_ProgressAccumulator->RegisterInternalFilter( crop, 0.1 * progressWeight );
-    }
   
-  this->AllocateOutputs();
-  crop->GraftOutput( this->GetOutput() );
-  crop->Update();
-  this->GraftOutput( crop->GetOutput() );
+  if( !m_CropOutput )
+    {
+    if( progressWeight != 0 )
+      {
+      m_ProgressAccumulator->RegisterInternalFilter( window, 0.2 * progressWeight );
+      }
+    this->AllocateOutputs();
+    window->GraftOutput( this->GetOutput() );
+    window->Update();
+    this->GraftOutput( window->GetOutput() );  
+    }
+  else
+    {
+    if( progressWeight != 0 )
+      {
+      m_ProgressAccumulator->RegisterInternalFilter( window, 0.1 * progressWeight );
+      }
+  
+    typedef itk::RegionFromReferenceImageFilter< OutputImageType, OutputImageType > CropType;
+    typename CropType::Pointer crop = CropType::New();
+    crop->SetInput( window->GetOutput() );
+    crop->SetReferenceImage( this->GetInput() );
+    crop->SetNumberOfThreads( this->GetNumberOfThreads() );
+    if( progressWeight != 0 )
+      {
+      m_ProgressAccumulator->RegisterInternalFilter( crop, 0.1 * progressWeight );
+      }
+    this->AllocateOutputs();
+    crop->GraftOutput( this->GetOutput() );
+    crop->Update();
+    this->GraftOutput( crop->GetOutput() );
+    }
   m_ProgressAccumulator = NULL;
 }
 
@@ -456,8 +487,7 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
   Superclass::PrintSelf(os, indent);
 
   os << indent << "Normalize: "  << m_Normalize << std::endl;
-  os << indent << "GreatestPrimeFactor: "  << m_GreatestPrimeFactor << std::endl;
-  os << indent << "PadMethod: "  << m_PadMethod << std::endl;
+  os << indent << "CropOutput: "  << m_CropOutput << std::endl;
 }
 
 }// end namespace itk

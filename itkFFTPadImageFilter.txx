@@ -36,7 +36,7 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
   m_PadMethod = ZERO_FLUX_NEUMANN;
 //  this->SetNumberOfRequiredInputs(2);
   this->SetNumberOfRequiredOutputs(2);
-  this->SetNthOutput( 1, OutputImageType::New() );
+  this->SetNthOutput( 1, TKernelOutput::New() );
 }
 
 template <class TInputImage, class TInputKernel, class TOutputImage, class TKernelOutput>
@@ -140,13 +140,17 @@ FFTPadImageFilter<TInputImage, TInputKernel, TOutputImage, TKernelOutput>
     region = RegionType( idx, size );
     }
   output0->SetLargestPossibleRegion( region );
-  if( input1 )
+  // make sure that output1 is actually there - it can be set to NULL by subclasses
+  if( output1 )
     {
-    output1->SetLargestPossibleRegion( region );
-    }
-  else
-    {
-    output1->SetLargestPossibleRegion( nullregion );
+    if( input1 )
+      {
+      output1->SetLargestPossibleRegion( region );
+      }
+    else
+      {
+      output1->SetLargestPossibleRegion( nullregion );
+      }
     }
   // std::cout << region << std::endl;
 }
