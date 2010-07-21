@@ -26,7 +26,7 @@
 #include "itkMultiplyImageFilter.h"
 #include "itkFFTComplexConjugateToRealImageFilter.h"
 #include "itkRegionFromReferenceImageFilter.h"
-#include "itkIntensityWindowingImageFilter.h"
+#include "itkClipImageFilter.h"
 #include "itkConstantPadImageFilter.h"
 #include "itkChangeInformationImageFilter.h"
 
@@ -273,36 +273,34 @@ FFTConvolutionImageFilterBase<TInputImage, TKernelImage, TOutputImage, TInternal
   ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
   m_ProgressAccumulator->SetMiniPipelineFilter(this);
 
-  typedef itk::IntensityWindowingImageFilter< InternalImageType, OutputImageType > WindowType;
-  typename WindowType::Pointer window = WindowType::New();
-  window->SetInput( paddedOutput );
-  window->SetWindowMinimum( NumericTraits< OutputImagePixelType >::Zero );
-  window->SetWindowMaximum( NumericTraits< OutputImagePixelType >::max() );
-  window->SetNumberOfThreads( this->GetNumberOfThreads() );
-  window->SetReleaseDataFlag( true );
-  window->SetInPlace( true );
+  typedef itk::ClipImageFilter< InternalImageType, OutputImageType > ClipType;
+  typename ClipType::Pointer clip = ClipType::New();
+  clip->SetInput( paddedOutput );
+  clip->SetNumberOfThreads( this->GetNumberOfThreads() );
+  clip->SetReleaseDataFlag( true );
+  clip->SetInPlace( true );
   
   if( !m_CropOutput )
     {
     if( progressWeight != 0 )
       {
-      m_ProgressAccumulator->RegisterInternalFilter( window, 0.2 * progressWeight );
+      m_ProgressAccumulator->RegisterInternalFilter( clip, 0.2 * progressWeight );
       }
     this->AllocateOutputs();
-    window->GraftOutput( this->GetOutput() );
-    window->Update();
-    this->GraftOutput( window->GetOutput() );  
+    clip->GraftOutput( this->GetOutput() );
+    clip->Update();
+    this->GraftOutput( clip->GetOutput() );  
     }
   else
     {
     if( progressWeight != 0 )
       {
-      m_ProgressAccumulator->RegisterInternalFilter( window, 0.1 * progressWeight );
+      m_ProgressAccumulator->RegisterInternalFilter( clip, 0.1 * progressWeight );
       }
   
     typedef itk::RegionFromReferenceImageFilter< OutputImageType, OutputImageType > CropType;
     typename CropType::Pointer crop = CropType::New();
-    crop->SetInput( window->GetOutput() );
+    crop->SetInput( clip->GetOutput() );
     crop->SetReferenceImage( this->GetInput() );
     crop->SetNumberOfThreads( this->GetNumberOfThreads() );
     if( progressWeight != 0 )
