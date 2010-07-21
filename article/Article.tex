@@ -51,7 +51,9 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
 \author{Ga\"etan Lehmann}
-% \authoraddress{}
+\authoraddress{{$^1$}INRA, UMR 1198; ENVA; CNRS, FRE 2857, Biologie du
+D\'eveloppement et 
+Reproduction, Jouy en Josas, F-78350, France.}
 
 \begin{document}
 
@@ -206,6 +208,12 @@ transform. See figure \ref{fig:image-modifications}.
 \caption{The modifications applied to the input image.\label{fig:image-modifications}}
 \end{center}
 \end{figure}
+
+\subsection{Clipping}
+
+Because of the numerical precision used in the FFT transforms, the values can sometime be greater or
+smaller than the possible values of the output image.
+The values are clipped to fit in the range of possible values of the output image.
 
 \subsection{Cropping}
 
@@ -371,6 +379,32 @@ since it was testing the number of pixels rather than the size of all the dimens
 With the changes already made in this classes for other reasons, the plan is no longer kept
 between successive executions, so this is no longer a problem.
 
+\subsubsection{Plan optimization}
+
+The ITK classes have been modified in order to create optimized FFTW plan. Because the computation
+of the optimized plan can take a lot of time, the default is still \verb$ESTIMATE$.
+
+The optimization level can be changed globally only at this time, with the method
+\verb$itk::FFTWLock::SetGlobalOptimizationLevel()$, or by setting the environment variable
+\verb$ITK_FFTW_OPTIMIZATION_LEVEL$.
+
+\subsubsection{Wisdom integration}
+
+The optimized plans are automatically loaded and saved from/in the files \verb$~/itkwisdomf$ and \verb$~/itkwisdom$,
+or in the file name stored in the environment variable \verb$ITK_FFTW_WISDOM _FILE_BASE_NAME$ if this
+variable exists.
+They are saved automatically when the program exits, and can also be saved with some dedicated methods
+in \verb$itk::FFTWLock$.
+
+\subsection{ClipImageFilter}
+
+\verb$itk::ClipImageFilter$ is a filter very similar to \verb$itk::CastImageFilter$ excepted that it
+take cares to clip the too small or to great values, instead of simply casting them in the output
+pixel type.
+
+As \verb$itk::CastImageFilter$, it is able to process zero pixel if the output and the input are of the
+same type and the filter can be run in place.
+
 \subsection{RegionFromReferenceImageFilter}
 
 At the end of the convolution, the image is cropped to return it to the size of the input image. Again,
@@ -383,6 +417,27 @@ the region to extract in the first one. The reference image, the second input, i
 be of type \verb$itk::ImageBase$ with the same dimensionality as the first, and so it's type does not
 need to be specified in the template parameters.
 
+\subsection{FFTConvolutionImageFilterBase}
+
+\verb$itk::FFTConvolutionImageFilter$ is the base class to use for all the FFT based convolution transforms. It
+contains several methods designed to make easier the implementation of the FFT based convolution filters. There
+are 
+\begin{itemize}
+ \item several kind of methods to prepare the input image and kernel;
+ \item a method to register the progress of some additional filters;
+ \item an easy access to the padded region and the oddity of the size on the x axis;
+ \item several kind of methods to produce the output.
+\end{itemize}
+
+It is implemented as a subclass of \verb$itk::FFTPadImageFilter$ to expose the padding options and avoid
+code duplication.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.35]{inheritance}
+\caption{New and modified classes inheritances.\label{fig:conv-pipeline}}
+\end{figure}
+
 \subsection{FFTConvolutionImageFilter}
 
 \verb$itk::FFTConvolutionImageFilter$ is a convenient minipipeline filter which groups all the required
@@ -394,13 +449,10 @@ for an overview of the minipipeline.
 \caption{Internal pipeline of FFTConvolutionImageFilter.\label{fig:conv-pipeline}}
 \end{figure}
 
+It is based on \verb$itk::FFTConvolutionImageFilter$.
+
 It sets the \verb$ReleaseDataFlag$ properly to keep the memory usage as low as possible, and propagates the
 user specified number of threads.
-
-It also exposes the \verb$GreatestPrimeFactor$ accessors from \verb$itk::FFTPadImageFilter$ to let
-the user choose between the extra performance added by the padding and the extra memory cost, and
-\verb$PadMethod$ from the same filter to let the user choose the padding method: Zero flux Neumann
-is used by default.
 
 Finally, the \verb$Normalize$ attribute lets the user choose if the kernel must be normalized to one
 or not.
@@ -472,11 +524,6 @@ A development version is available in a darcs repository at
 
 \section{Acknowledgments}
 
-Unlike most of my previous contributions, this work has {\em not} been supported by
-the french National Institute for Agricultural Research (INRA) -- my employer.
-I'd like to thank the INRA anyway, and more specifically the MIMA2 facility, who
-provided the computer ressources used for this work. 
-
 I'm grateful to Dan White for its corrections and useful comments on this article.
 
 \section{Conclusion}
@@ -489,9 +536,6 @@ Some other work may be done on this basis. An non exhaustive list includes:
  \item binary erosion/dilation filters based on FFT;
  \item a set of deconvolution filters;
  \item a more memory efficient implementation of the convolution filter using the Overlap-Save algorithm;
- \item allow the user to create a plan with \verb$FFTW_PATIENT$, \verb$FFTW_MEASURE$, or
-       \verb$FFTW_EXHAUSTIVE$, so that FFTW can create better plan with \verb$FFTW_ESTIMATE$ in a
-       later run;
  \item integrate FFTW's wisdom to improve FFT performance in ITK.
 \end{itemize}
 
