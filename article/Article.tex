@@ -446,7 +446,8 @@ for an overview of the minipipeline.
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.5]{conv}
-\caption{Internal pipeline of FFTConvolutionImageFilter.\label{fig:conv-pipeline}}
+\caption{Internal pipeline of FFTConvolutionImageFilter. MultiplyImageFilter is the only filter created in
+FFTConvolutionImageFilter -- the others are created in FFTConvolutionImageFilterBase.\label{fig:conv-pipeline}}
 \end{figure}
 
 It is based on \verb$itk::FFTConvolutionImageFilter$.
