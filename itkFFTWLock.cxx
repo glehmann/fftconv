@@ -19,7 +19,17 @@
 =========================================================================*/
 #include "itkFFTWLock.h"
 #include "itksys/SystemTools.hxx"
-#include <sys/file.h>
+#ifdef _WIN32
+	#include <Windows.h>
+	#include <sys/locking.h>
+	#include <io.h>
+	#include <fcntl.h>
+	#include <sys/types.h>
+	#include <sys/stat.h>
+	#include <share.h>
+#else
+	#include <sys/file.h>
+#endif
 
 namespace itk
 {
@@ -123,7 +133,11 @@ FFTWLock
   std::string name;
   if( !itksys::SystemTools::GetEnv("ITK_FFTW_WISDOM_FILE_BASE_NAME", name) )
     {
-    name = std::string(itksys::SystemTools::GetEnv("HOME")) + "/.itkwisdom";
+#ifdef _WIN32
+		name = std::string(itksys::SystemTools::GetEnv("HOMEPATH")) + "\\.itkwisdom";
+#else // fdv : TODO ADD MACOSX OR WHATEVER WE NEED
+		name = std::string(itksys::SystemTools::GetEnv("HOME")) + "/.itkwisdom";
+#endif
     }
   return name;
 }
@@ -162,6 +176,16 @@ FFTWLock
 {
   bool ret = false;
 #if defined(USE_FFTWF)
+#ifdef _WIN32
+	FILE *f;
+	int  fd;
+	if ( !_sopen_s( &fd, path.c_str(), _O_RDONLY, _SH_DENYNO, _S_IREAD)){
+		if ( (f = _fdopen(fd, "r")) != NULL ) {// strange but seems ok under VC++ not so friendly with checking the return values of affectations
+			ret = fftwf_import_wisdom_from_file( f );
+		}
+	_close(fd);
+	}
+#else   
   FILE * f = fopen( path.c_str(), "r" );
   if( f )
     {
@@ -170,6 +194,7 @@ FFTWLock
     flock( fileno(f), LOCK_UN );
     fclose( f );
     }
+#endif
 #endif
   return ret;
 }
@@ -180,6 +205,16 @@ FFTWLock
 {
   bool ret = false;
 #if defined(USE_FFTWD)
+  #ifdef _WIN32
+	FILE *f;
+	int  fd;
+	if ( !_sopen_s( &fd, path.c_str(), _O_RDONLY, _SH_DENYNO, _S_IREAD)){
+		if ( (f = _fdopen(fd, "r")) != NULL ) {// strange but seems ok under VC++
+			ret = fftwf_import_wisdom_from_file( f );
+		}
+	_close(fd);
+	}
+#else 
   FILE * f = fopen( path.c_str(), "r" );
   if( f )
     {
@@ -188,6 +223,7 @@ FFTWLock
     flock( fileno(f), LOCK_UN );
     fclose( f );
     }
+#endif
 #endif
   return ret;
 }
@@ -198,6 +234,16 @@ FFTWLock
 {
   bool ret = false;
 #if defined(USE_FFTWF)
+  #ifdef _WIN32
+	FILE *f;
+	int  fd;
+	if ( !_sopen_s( &fd, path.c_str(), _O_RDONLY, _SH_DENYNO, _S_IREAD)){
+		if ( (f = _fdopen(fd, "r")) != NULL ) {// strange but seems ok under VC++
+			ret = fftwf_import_wisdom_from_file( f );
+		}
+	_close(fd);
+	}
+#else 
   FILE * f = fopen( path.c_str(), "w" );
   if( f )
     {
@@ -206,6 +252,7 @@ FFTWLock
     flock( fileno(f), LOCK_UN );
     ret = fclose( f );
     }
+#endif
 #endif
   return ret;
 }
@@ -216,6 +263,16 @@ FFTWLock
 {
   bool ret = false;
 #if defined(USE_FFTWD)
+  #ifdef _WIN32
+	FILE *f;
+	int  fd;
+	if ( !_sopen_s( &fd, path.c_str(), _O_RDONLY, _SH_DENYNO, _S_IREAD)){
+		if ( (f = _fdopen(fd, "r")) != NULL ) {// strange but seems ok under VC++
+			ret = fftwf_import_wisdom_from_file( f );
+		}
+	_close(fd);
+	}
+#else 
   FILE * f = fopen( path.c_str(), "w" );
   if( f )
     {
@@ -224,6 +281,7 @@ FFTWLock
     flock( fileno(f), LOCK_UN );
     ret = fclose( f );
     }
+#endif
 #endif
   return ret;
 }
