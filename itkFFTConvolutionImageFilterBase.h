@@ -86,17 +86,20 @@ public:
   itkStaticConstMacro(ImageDimension, unsigned int,
                       TOutputImage::ImageDimension);
 
-  typedef ImageBase< ImageDimension >              BaseImageType;
+  typedef ImageBase< ImageDimension >                                    BaseImageType;
   
-  typedef itk::FFTRealToComplexConjugateImageFilter< InternalPrecisionType, ImageDimension > FFTFilterType;
-  typedef itk::FFTComplexConjugateToRealImageFilter< InternalPrecisionType, ImageDimension > IFFTFilterType;
-  typedef typename FFTFilterType::OutputImageType                                            ComplexImageType;
-  typedef typename ComplexImageType::PixelType                                               ComplexType;
-  typedef typename ComplexImageType::Pointer                                                 ComplexImagePointerType;
+  typedef typename itk::Image< InternalPrecisionType, ImageDimension >   InternalImageType;
+  typedef typename InternalImageType::Pointer                            InternalImagePointerType;
+  typedef typename InternalImageType::ConstPointer                       InternalImageConstPointerType;
 
-  typedef typename itk::Image< InternalPrecisionType, ImageDimension > InternalImageType;
-  typedef typename InternalImageType::Pointer                          InternalImagePointerType;
-  typedef typename InternalImageType::ConstPointer                     InternalImageConstPointerType;
+  typedef itk::FFTRealToComplexConjugateImageFilter< InternalImageType > FFTFilterType;
+
+  typedef typename FFTFilterType::OutputImageType                        ComplexImageType;
+  typedef typename ComplexImageType::PixelType                           ComplexType;
+  typedef typename ComplexImageType::Pointer                             ComplexImagePointerType;
+
+  typedef itk::FFTComplexConjugateToRealImageFilter< ComplexImageType >  IFFTFilterType;
+
 
   /** Standard New method. */
   itkNewMacro(Self);  

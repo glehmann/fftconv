@@ -36,10 +36,7 @@ ENDFOREACH(Package)
 #Set any libraries that your project depends on.
 #examples: ITKCommon, VTKRendering, etc
 SET(Libraries
-  ITKAlgorithms
-  ITKCommon
-  ITKBasicFilters
-  ITKIO
+  ${ITK_LIBRARIES}
 )
 
 
@@ -70,8 +67,8 @@ ENDIF(BUILD_WRAPPERS)
 
 IF(BUILD_TESTING)
 
-FOREACH(CurrentExe ref pad pad1 norm fftconv conv perf2D)
-  ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx itkFFTWLock.cxx)
+FOREACH(CurrentExe ref pad pad1 norm fftconv conv perf2D perf3D perf_threads)
+  ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
   TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 ENDFOREACH(CurrentExe)
 
